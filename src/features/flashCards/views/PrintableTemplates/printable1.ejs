@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>All Cards for Topic & Subtopics</title>
+
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/a11y-dark.min.css"
+  />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+
+  <script>
+    function autoScaleElementFont(element, container, step = 0.05, minFont = 0.5, maxIterations = 50) {
+      if (!element || !container) return;
+      let currentFontSizePx = parseFloat(window.getComputedStyle(element).fontSize);
+      let rootFontSize = parseFloat(window.getComputedStyle(document.documentElement).fontSize);
+      let currentFontRem = currentFontSizePx / rootFontSize;
+
+      let iteration = 0;
+      while (
+        container.scrollHeight > container.clientHeight &&
+        currentFontRem > minFont &&
+        iteration < maxIterations
+      ) {
+        currentFontRem -= step;
+        element.style.fontSize = currentFontRem + 'rem';
+        iteration++;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      hljs.highlightAll();
+
+      const cardBacks = document.querySelectorAll('.card-back');
+      cardBacks.forEach(cardBack => {
+        const scalableContent = cardBack.querySelector('.scalable-content');
+        if (scalableContent) {
+          autoScaleElementFont(scalableContent, cardBack);
+        }
+      });
+    });
+  </script>
+
+  <style>
+    @page {
+      size: Letter;
+      margin: 0;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 8.5in;
+      height: 11in;
+      font-family: Arial, sans-serif;
+    }
+    .page {
+      position: relative;
+      width: 8.5in;
+      height: 11in;
+      box-sizing: border-box;
+      page-break-after: always;
+      overflow: hidden;
+    }
+    .card-slot {
+      position: absolute;
+      width: 3.5in;
+      height: 2.25in;
+    }
+    .card-slot1  { top: 1in;    left: 0.75in; }
+    .card-slot2  { top: 1in;    left: 4.25in; }
+    .card-slot3  { top: 3.25in; left: 0.75in; }
+    .card-slot4  { top: 3.25in; left: 4.25in; }
+    .card-slot5  { top: 5.5in;  left: 0.75in; }
+    .card-slot6  { top: 5.5in;  left: 4.25in; }
+    .card-slot7  { top: 7.75in; left: 0.75in; }
+    .card-slot8  { top: 7.75in; left: 4.25in; }
+    .rotated-card {
+      width: 2.25in;
+      height: 3.5in;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-90deg);
+      transform-origin: center center;
+    }
+    .rotated-card > .card-front,
+    .rotated-card > .card-back {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+
+  <% 
+    const cardsPerSheet = 8;
+    const totalCards = cards.length;
+    const totalSheets = Math.ceil(totalCards / cardsPerSheet);
+  %>
+
+  <% for (let s = 0; s < totalSheets; s++) {
+       const startIndex = s * cardsPerSheet;
+       const endIndex = Math.min(startIndex + cardsPerSheet, totalCards);
+       const chunkCards = cards.slice(startIndex, endIndex);
+  %>
+    <!-- FRONT page for these 8 (or fewer) cards -->
+    <div class="page">
+      <% for (let i = 0; i < 8; i++) {
+           const cardIndex = startIndex + i;
+           if (cardIndex < totalCards) {
+             const cardData = cards[cardIndex];
+      %>
+        <div class="card-slot card-slot<%= i+1 %>">
+          <div class="rotated-card">
+            <%- include(`../CardStyles/${style}/front.ejs`, {
+                  card: cardData,
+                  parentTopicName: cardData.parentTopicName
+            }) %>
+          </div>
+        </div>
+      <% } else { %>
+        <div class="card-slot card-slot<%= i+1 %>"></div>
+      <% } } %>
+    </div>
+
+    <!-- BACK page for the same 8 cards -->
+    <div class="page">
+      <% for (let i = 0; i < 8; i++) {
+           const cardIndex = startIndex + i;
+           if (cardIndex < totalCards) {
+             const cardData = cards[cardIndex];
+      %>
+        <div class="card-slot card-slot<%= i+1 %>">
+          <div class="rotated-card">
+            <%- include(`../CardStyles/${style}/back.ejs`, { card: cardData }) %>
+          </div>
+        </div>
+      <% } else { %>
+        <div class="card-slot card-slot<%= i+1 %>"></div>
+      <% } } %>
+    </div>
+  <% } %>
+
+</body>
+</html>

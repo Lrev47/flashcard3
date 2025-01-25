@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>3×5 Cards</title>
+
+  <!-- Highlight.js Styles and Script -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/a11y-dark.min.css"
+  />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+
+  <script>
+    function autoScaleElementFont(element, container, step = 0.05, minFont = 0.5, maxIterations = 50) {
+      if (!element || !container) return;
+      let currentFontSizePx = parseFloat(window.getComputedStyle(element).fontSize);
+      let rootFontSize = parseFloat(window.getComputedStyle(document.documentElement).fontSize);
+      let currentFontRem = currentFontSizePx / rootFontSize;
+
+      let iteration = 0;
+      while (
+        container.scrollHeight > container.clientHeight &&
+        currentFontRem > minFont &&
+        iteration < maxIterations
+      ) {
+        currentFontRem -= step;
+        element.style.fontSize = currentFontRem + 'rem';
+        iteration++;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      hljs.highlightAll();
+
+      // Optional auto-scaling for .card-back content:
+      const cardBacks = document.querySelectorAll('.card-back');
+      cardBacks.forEach(cardBack => {
+        const scalableContent = cardBack.querySelector('.scalable-content');
+        if (scalableContent) {
+          autoScaleElementFont(scalableContent, cardBack);
+        }
+      });
+    });
+  </script>
+
+  <style>
+    /* Force letter-size pages and remove default margins */
+    @page {
+      size: Letter;
+      margin: 0;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 8.5in;
+      height: 11in;
+      font-family: Arial, sans-serif;
+    }
+
+    /* Each page is 8.5" x 11", forced to break after each page */
+    .page {
+      position: relative;
+      width: 8.5in;
+      height: 11in;
+      box-sizing: border-box;
+      page-break-after: always;
+      overflow: hidden;
+    }
+
+    /* We'll place 4 cards in a 2×2 grid.
+       Each card is 3" wide, 5" tall, with some margin. */
+    .card-slot {
+      position: absolute;
+      width: 3in;
+      height: 5in;
+      box-sizing: border-box;
+      border: 0; /* No border by default; you can show a boundary if you like */
+      overflow: hidden;
+    }
+
+    /* Adjust these positions to comfortably fit 2 wide x 2 tall on 8.5" x 11" */
+    /* Row 1 */
+    .card-slot1  { top: 0.5in;  left: 0.75in; }
+    .card-slot2  { top: 0.5in;  left: 4.5in; }
+    /* Row 2 */
+    .card-slot3  { top: 5.75in; left: 0.75in; }
+    .card-slot4  { top: 5.75in; left: 4.5in; }
+
+    /* If your front/back ejs templates have their own widths, they
+       should adapt to this container. If you need to enforce
+       exact sizing from within, ensure .card-front/.card-back
+       remain within 3" x 5". */
+  </style>
+</head>
+<body>
+
+  <% 
+    // We want 4 cards per sheet.
+    const cardsPerSheet = 4;
+    const totalCards = cards.length;
+    const totalSheets = Math.ceil(totalCards / cardsPerSheet);
+  %>
+
+  <% for (let s = 0; s < totalSheets; s++) {
+       const startIndex = s * cardsPerSheet;
+       const endIndex = Math.min(startIndex + cardsPerSheet, totalCards);
+       const chunkCards = cards.slice(startIndex, endIndex);
+  %>
+    <!-- PAGE 1 for this group: the FRONTS of up to 4 cards -->
+    <div class="page">
+      <% for (let i = 0; i < 4; i++) {
+           const cardIndex = startIndex + i;
+           if (cardIndex < totalCards) {
+             const cardData = cards[cardIndex];
+      %>
+        <div class="card-slot card-slot<%= i+1 %>">
+          <!-- Insert/Include your FRONT template -->
+          <%- include(`../CardStyles/${style}/front.ejs`, {
+                card: cardData,
+                parentTopicName: cardData.parentTopicName
+          }) %>
+        </div>
+      <% } else { %>
+        <!-- Empty slot if no card -->
+        <div class="card-slot card-slot<%= i+1 %>"></div>
+      <% } } %>
+    </div>
+
+    <!-- PAGE 2 for the same group: the BACKS of up to 4 cards -->
+    <div class="page">
+      <% for (let i = 0; i < 4; i++) {
+           const cardIndex = startIndex + i;
+           if (cardIndex < totalCards) {
+             const cardData = cards[cardIndex];
+      %>
+        <div class="card-slot card-slot<%= i+1 %>">
+          <!-- Insert/Include your BACK template -->
+          <%- include(`../CardStyles/${style}/back.ejs`, {
+                card: cardData
+          }) %>
+        </div>
+      <% } else { %>
+        <!-- Empty slot if no card -->
+        <div class="card-slot card-slot<%= i+1 %>"></div>
+      <% } } %>
+    </div>
+  <% } %>
+
+</body>
+</html>

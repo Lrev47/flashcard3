@@ -1,0 +1,77 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum AnswerType {
+  NONE
+  CODE_SNIPPET
+  FLOWCHART
+  DIAGRAM
+}
+
+model User {
+  id       String  @id @default(uuid())
+  email    String  @unique
+  name     String?
+  password String
+  decks    Deck[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Deck {
+  id       String  @id @default(uuid())
+  name     String
+  isPublic Boolean @default(false)
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
+  topicId String?
+  topic   Topic?  @relation("DeckTopic", fields: [topicId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Topic {
+  id       String  @id @default(uuid())
+  name     String
+  overview String?
+  parentTopicId String?
+  parentTopic   Topic?  @relation("TopicHierarchy", fields: [parentTopicId], references: [id])
+  subTopics     Topic[] @relation("TopicHierarchy")
+  deck Deck[] @relation("DeckTopic")
+  cards Card[]
+  cardsGenerated String? 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Card {
+  id         String  @id @default(uuid())
+  authorName String?
+  question        String
+  qrCodeGenerated Boolean?
+  qrCodeUrl       String?
+  topicId String?
+  topic   Topic?  @relation(fields: [topicId], references: [id])
+  answer String
+  answerType AnswerType @default(NONE)
+  detailedExplanation String?
+  resources Json?
+  examples Json?
+  tags Tag[] @relation("CardToTag")
+  isEnhanced Boolean?
+  isVerified Boolean?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Tag {
+  id   String @id @default(uuid())
+  name String
+  cards Card[] @relation("CardToTag")
+}
