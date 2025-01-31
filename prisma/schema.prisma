@@ -7,6 +7,7 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// --------------- Enums ---------------
 enum AnswerType {
   NONE
   CODE_SNIPPET
@@ -14,64 +15,260 @@ enum AnswerType {
   DIAGRAM
 }
 
+enum ExplanationBlockType {
+  TEXT
+  IMAGE
+  VIDEO
+}
+
+// --------------- Core Models ---------------
 model User {
   id       String  @id @default(uuid())
   email    String  @unique
   name     String?
   password String
-  decks    Deck[]
+
+  // Resources owned by User
+  decks         Deck[]
+  studyGuides   StudyGuide[]
+  practiceTests PracticeTest[]
+  documents     Document[]
+
+  // Blog relationships
+  blogComments BlogComment[] // This user wrote these comments
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model Deck {
-  id       String  @id @default(uuid())
-  name     String
-  isPublic Boolean @default(false)
-  userId String?
-  user   User?   @relation(fields: [userId], references: [id])
-  topicId String?
-  topic   Topic?  @relation("DeckTopic", fields: [topicId], references: [id])
+model Document {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  fileName  String
+  mimeType  String?
+  fileData  Bytes? // Or store an S3 link instead
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // If you want direct references from resources derived from this document:
+  cards         Card[]
+  studyGuides   StudyGuide[]
+  practiceTests PracticeTest[]
 }
 
 model Topic {
   id       String  @id @default(uuid())
   name     String
   overview String?
+
+  // Self-relation for subtopics
   parentTopicId String?
   parentTopic   Topic?  @relation("TopicHierarchy", fields: [parentTopicId], references: [id])
   subTopics     Topic[] @relation("TopicHierarchy")
-  deck Deck[] @relation("DeckTopic")
-  cards Card[]
-  cardsGenerated String? 
+
+  // Deck, Cards, StudyGuides, PracticeTests referencing this Topic
+  deck          Deck[]         @relation("DeckTopic")
+  cards         Card[]         @relation("TopicCards")
+  studyGuides   StudyGuide[]   @relation("TopicStudyGuides")
+  practiceTests PracticeTest[] @relation("TopicPracticeTests")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// --------------- Deck & Card ---------------
+model Deck {
+  id       String  @id @default(uuid())
+  name     String
+  isPublic Boolean @default(false)
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
+
+  topicId String?
+  topic   Topic?  @relation("DeckTopic", fields: [topicId], references: [id])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Card {
-  id         String  @id @default(uuid())
-  authorName String?
+  id              String   @id @default(uuid())
+  authorName      String?
   question        String
   qrCodeGenerated Boolean?
   qrCodeUrl       String?
+
+  // If topic-based
   topicId String?
-  topic   Topic?  @relation(fields: [topicId], references: [id])
-  answer String
+  topic   Topic?  @relation("TopicCards", fields: [topicId], references: [id])
+
+  // If document-based
+  documentId String?
+  document   Document? @relation(fields: [documentId], references: [id])
+
+  // Basic answer data
+  answer     String
   answerType AnswerType @default(NONE)
-  detailedExplanation String?
-  resources Json?
-  examples Json?
-  tags Tag[] @relation("CardToTag")
+
+  // Instead of a "detailedExplanation" string, we point to a separate model
+  explanation DetailedExplanation?
+
+  resources  Json?
+  examples   Json?
   isEnhanced Boolean?
   isVerified Boolean?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model Tag {
-  id   String @id @default(uuid())
-  name String
-  cards Card[] @relation("CardToTag")
+// --------------- Explanation (for each Card) ---------------
+model DetailedExplanation {
+  id String @id @default(uuid())
+
+  // 1-to-1 relation with Card
+  cardId String @unique
+  card   Card   @relation(fields: [cardId], references: [id])
+
+  // Optional title or summary
+  title String?
+
+  // multiple blocks for structured text, images, or video links
+  blocks ExplanationBlock[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ExplanationBlock {
+  id            String              @id @default(uuid())
+  explanationId String
+  explanation   DetailedExplanation @relation(fields: [explanationId], references: [id])
+
+  blockType ExplanationBlockType
+  content   String? // For TEXT, this is text. For IMAGE/VIDEO, store the URL.
+
+  // optional ordering if you want to specify the sequence
+  order Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// --------------- Study Guide & Sections ---------------
+model StudyGuide {
+  id String @id @default(uuid())
+
+  userId   String
+  user     User    @relation(fields: [userId], references: [id])
+  isPublic Boolean @default(false)
+
+  topicId String?
+  topic   Topic?  @relation("TopicStudyGuides", fields: [topicId], references: [id])
+
+  documentId String?
+  document   Document? @relation(fields: [documentId], references: [id])
+
+  title String // main title of the entire guide
+
+  // Relationship to the sections for more structured content
+  sections StudyGuideSection[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model StudyGuideSection {
+  id           String     @id @default(uuid())
+  studyGuideId String
+  studyGuide   StudyGuide @relation(fields: [studyGuideId], references: [id])
+
+  // Example fields: heading, body, images, references, etc.
+  order     Int?
+  heading   String?
+  body      String? // store markdown or plain text
+  imageUrls String[] // for multiple image links (Postgres text[] by default)
+  videoUrls String[] // for multiple video links (Postgres text[] by default)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// --------------- Practice Test ---------------
+model PracticeTest {
+  id String @id @default(uuid())
+
+  userId   String
+  user     User    @relation(fields: [userId], references: [id])
+  isPublic Boolean @default(false)
+
+  topicId String?
+  topic   Topic?  @relation("TopicPracticeTests", fields: [topicId], references: [id])
+
+  documentId String?
+  document   Document? @relation(fields: [documentId], references: [id])
+
+  title        String
+  instructions String?
+
+  questions PracticeTestQuestion[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PracticeTestQuestion {
+  id             String       @id @default(uuid())
+  practiceTestId String
+  practiceTest   PracticeTest @relation(fields: [practiceTestId], references: [id])
+
+  question String
+  answer   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// --------------- Blog Post & Comments ---------------
+model BlogPost {
+  id            String  @id @default(uuid())
+  slug          String  @unique
+  topLevelImage String?
+  header        String // main title
+  tagline       String?
+  authorId      String
+  author        String
+
+  // Up to three paragraphs, you can expand if you need more
+  paragraph1Title String?
+  paragraph1      String?
+  paragraph2Title String?
+  paragraph2      String?
+  paragraph3Title String?
+  paragraph3      String?
+
+  conclusion String?
+  summary    String?
+  endingNote String?
+
+  comments BlogComment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model BlogComment {
+  id      String @id @default(uuid())
+  content String
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  blogPostId String
+  blogPost   BlogPost @relation(fields: [blogPostId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
