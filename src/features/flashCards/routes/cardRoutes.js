@@ -1,31 +1,81 @@
-import express from 'express';
+// src/features/flashCards/routes/cardRoutes.js
+import { Router } from 'express';
 import {
-  getCardByIdHandler,
+  // 1) BASIC CARD CRUD
   getAllCardsHandler,
-  getCardsByTopicHandler,
-  getAllDescendantCardsHandler,
+  getCardByIdHandler,
   createCardHandler,
   updateCardHandler,
-  deleteCardHandler
-} from '../controllers/cardController.js';
+  deleteCardHandler,
 
-import {
+  // 2) CARD QUERIES
+  getCardsByTopicHandler,
+  getAllDescendantCardsHandler,
+  getCardsByDeckIdHandler,
+  getCardsByDocumentIdHandler,
+
+  // 3) EXPLANATION
+  upsertCardExplanationHandler,
+  removeCardExplanationHandler,
+  addCardExplanationBlockHandler,
+
+  // 4) AI / GENERATION
   generateMoreCardsHandler,
   generateCardsHandler,
-  docAllCardsHandler
-} from '../controllers/cardOperationsController.js';
+  docAllCardsHandler,
+  masterGenerateHandler,
 
-const router = express.Router();
+  // 5) QR CODE
+  getCardQRCodeHandler,
+  generateMissingQRCodesHandler,
+} from '../controllers/cardController.js';
 
-router.post('/:topicId/generate-more', generateMoreCardsHandler);
+const router = Router();
+
+/* ===========================================================================
+   1) BASIC CARD CRUD
+   ========================================================================== */
+router.get('/', getAllCardsHandler);    // GET /cards
+router.post('/', createCardHandler);    // POST /cards
+
+/* ===========================================================================
+   2) CARD QUERIES
+   ========================================================================== */
+router.get('/topic/:topicId', getCardsByTopicHandler);                    
+router.get('/topic/:topicId/descendants', getAllDescendantCardsHandler);  
+router.get('/deck/:deckId', getCardsByDeckIdHandler);                     
+router.get('/document/:documentId', getCardsByDocumentIdHandler);         
+
+/* ===========================================================================
+   5) QR CODE (specific card param)
+   ========================================================================== */
+router.get('/:cardId/qrCode', getCardQRCodeHandler);                       // GET /cards/:cardId/qrCode
+
+/* ===========================================================================
+   3) EXPLANATION & BLOCK OPERATIONS
+   ========================================================================== */
+router.post('/:cardId/explanation', upsertCardExplanationHandler);         
+router.delete('/:cardId/explanation', removeCardExplanationHandler);       
+router.post('/:cardId/explanation/block', addCardExplanationBlockHandler);
+
+/* ===========================================================================
+   1b) BASIC CARD CRUD (by ID)
+   ========================================================================== */
+router.get('/:cardId', getCardByIdHandler);        
+router.put('/:cardId', updateCardHandler);         
+router.delete('/:cardId', deleteCardHandler);      
+
+/* ===========================================================================
+   5b) QR CODE (missing)
+   ========================================================================== */
+router.post('/qrCode/missing', generateMissingQRCodesHandler);
+
+/* ===========================================================================
+   4) AI / GENERATION
+   ========================================================================== */
+router.post('/generateMore/:topicId', generateMoreCardsHandler);
 router.post('/generate', generateCardsHandler);
-router.post('/docs', docAllCardsHandler);
-router.get('/topic/:topicId/all-subtopics', getAllDescendantCardsHandler);
-router.get('/topic/:topicId', getCardsByTopicHandler);
-router.get('/', getAllCardsHandler);
-router.get('/:cardId', getCardByIdHandler);
-router.post('/', createCardHandler);
-router.patch('/:cardId', updateCardHandler);
-router.delete('/:cardId', deleteCardHandler);
+router.post('/docAll', docAllCardsHandler);
+router.post('/masterGenerate', masterGenerateHandler);
 
 export default router;
