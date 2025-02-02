@@ -1,0 +1,184 @@
+<!-- src/features/flashCards/templates/designs/design1.ejs -->
+<% 
+// We'll assume you pass in: 
+//   side: 'front' or 'back'
+//   card: the current flashcard object
+//   parentTopicName: optional (could also be in card.parentTopicName)
+%>
+<style>
+  /********************************
+   * FRONT SIDE STYLES
+   ********************************/
+  .card-front {
+    width: 2.25in;
+    height: 3.5in;
+    border: 1px solid #000;
+    border-radius: 6px;
+    box-sizing: border-box;
+    position: relative;
+    padding: 0.5rem;
+    margin: 0.5rem;
+  }
+  .card-front .qr-code-area {
+    width: 0.8in;
+    height: 0.8in;
+    margin: 0 auto 0.5rem;
+    border: 1px dashed #888;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .card-front .card-question {
+    text-align: center;
+    font-size: 1.1rem;
+    width: 1.5in;
+    margin: 2rem auto 0;
+  }
+  .card-front .bottom-info {
+    position: absolute;
+    bottom: 0.5rem;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 0.5rem;
+  }
+  .bottom-info span {
+    flex: 1;
+  }
+  .difficulty-left {
+    text-align: left;
+  }
+  .topic-center {
+    text-align: center;
+  }
+  .author-right {
+    text-align: right;
+  }
+  .easy { color: green; font-weight: bold; }
+  .medium { color: orange; font-weight: bold; }
+  .hard { color: red; font-weight: bold; }
+
+  /********************************
+   * BACK SIDE STYLES
+   ********************************/
+  .card-back {
+    width: 2.25in;
+    height: 3.5in;
+    border: 1px solid #000;
+    border-radius: 6px;
+    box-sizing: border-box;
+    position: relative;
+    padding: 0.5rem;
+    margin: 0.5rem;
+    overflow: hidden;
+  }
+  .scalable-content {
+    font-size: 1rem;
+    line-height: 1.4;
+  }
+  .scalable-content .card-answer {
+    margin-top: 0.2in;
+    text-align: center;
+    display: block;
+  }
+  .scalable-content .code-snippet {
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .scalable-content .code-snippet code {
+    display: block;
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin: 0;
+    padding: 0.5rem;
+    border-radius: 4px;
+  }
+  .scalable-content .diagram-img {
+    display: block;
+    margin: 1rem auto 0;
+    max-width: 100%;
+    max-height: calc(3.5in - 2rem);
+  }
+</style>
+
+<% if (side === 'front') { %>
+  <!-- ================== FRONT ================== -->
+  <% 
+    // Difficulty logic
+    let difficultySymbol = '?';
+    let difficultyClass = '';
+    switch (card.difficulty) {
+      case 'EASY':
+        difficultySymbol = 'E'; difficultyClass = 'easy';
+        break;
+      case 'MEDIUM':
+        difficultySymbol = 'M'; difficultyClass = 'medium';
+        break;
+      case 'HARD':
+        difficultySymbol = 'H'; difficultyClass = 'hard';
+        break;
+    }
+  %>
+
+  <div class="card-front">
+    <div class="qr-code-area">
+      <% if (card.qrCodeUrl) { %>
+        <img
+          src="<%= card.qrCodeUrl %>"
+          alt="QR Code"
+          style="max-width: 100%; max-height: 100%;"
+        />
+      <% } else { %>
+        <span>No QR</span>
+      <% } %>
+    </div>
+
+    <h2 class="card-question"><%= card.question %></h2>
+
+    <div class="bottom-info">
+      <span class="difficulty-left <%= difficultyClass %>">
+        <%= difficultySymbol %>
+      </span>
+      
+      <span class="topic-center">
+        <%= parentTopicName || '' %>
+      </span>
+      
+      <span class="author-right">
+        <%= card.authorName %>
+      </span>
+    </div>
+  </div>
+
+<% } else { %>
+  <!-- ================== BACK ================== -->
+  <div class="card-back">
+    <div class="scalable-content">
+      <h3 class="card-answer"><%= card.answer %></h3>
+
+      <% if (
+          card.answerType === 'CODE_SNIPPET' &&
+          card.examples &&
+          card.examples.code
+      ) { %>
+        <pre class="code-snippet">
+          <code class="<%= card.examples.language ? `language-${card.examples.language}` : '' %>">
+<%= card.examples.code %>
+          </code>
+        </pre>
+      <% } else if (
+          card.answerType === 'DIAGRAM' &&
+          card.examples &&
+          card.examples.diagramUrl
+      ) { %>
+        <img
+          class="diagram-img"
+          src="<%= card.examples.diagramUrl %>"
+          alt="Diagram"
+        />
+      <% } %>
+    </div>
+  </div>
+<% } %>
