@@ -1,12 +1,15 @@
+// src/features/flashCards/AiApis/cardGeneration.js
+
 import OpenAI from 'openai';
 import { z } from 'zod';
 import { zodResponseFormat } from 'openai/helpers/zod';
-import cardService from '../services/cardService.js'; 
-import topicService from '../services/topicService.js';
+import cardService from '../services/cardService.js';
+import topicService from '../../topics/services/topicService.js';
 import pLimit from 'p-limit';
 
 const limit = pLimit(100);
 
+// 1. Zod schemas for AI card generation
 const SingleAICardSchema = z
   .object({
     question: z.string(),
@@ -16,55 +19,56 @@ const SingleAICardSchema = z
   })
   .strict();
 
-const AICardObjectSchema = z
-  .object({
-    cards: z.array(SingleAICardSchema),
-  })
-  .strict();
+const AICardObjectSchema = z.object({
+  cards: z.array(SingleAICardSchema),
+}).strict();
 
+// 2. OpenAI Setup
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// 3. Main Functions
+
+/**
+ * generateFlashcardsForTopic(topic, authorName)
+ * Creates 1-10 new flashcards for a topic, sets topic.cardsGenerated = "YES".
+ */
 export async function generateFlashcardsForTopic(topic, authorName = null) {
   console.log(`\n[cardGeneration] generateFlashcardsForTopic => Topic name: ${topic.name}, ID: ${topic.id}`);
 
   let parentTopicName = '';
   if (topic.parentTopicId) {
-    console.log(`[cardGeneration] Topic has a parentTopicId: ${topic.parentTopicId}. Fetching parent...`);
+    console.log(`[cardGeneration] Topic has parentTopicId: ${topic.parentTopicId}. Fetching parent...`);
     const parent = await topicService.findById(topic.parentTopicId);
     parentTopicName = parent?.name || '';
     console.log(`[cardGeneration] Parent topic name: ${parentTopicName}`);
   }
 
   const systemMessage = `
-    You are an AI that generates flashcards for the topic "${topic.name}" 
+    You are an AI that generates flashcards for the topic "${topic.name}"
     in the context of its parent topic "${parentTopicName || 'none'}".
 
     Requirements:
     1) Generate between 1 and 10 flashcards in total.
-    2) Each flashcard must address a core knowledge point of "${topic.name}" 
-       without repeating the same question.
-    3) Each flashcard must have ONLY these fields:
-       - question (string)
-       - answer (string)
+    2) Each flashcard must have ONLY:
+       - question
+       - answer
        - answerType (NONE, CODE_SNIPPET, FLOWCHART, DIAGRAM)
-       - codeSnippet (string, optional)
-    4) If answerType is CODE_SNIPPET, provide ONLY the relevant code snippet 
-       in codeSnippet as plain text. No extra commentary.
+       - codeSnippet (string, if code)
+    3) If answerType is CODE_SNIPPET, put only the code snippet in 'codeSnippet'.
 
-    Final JSON Output:
+    Output:
     {
       "cards": [
         {
           "question": "...",
           "answer": "...",
-          "answerType": "NONE | CODE_SNIPPET | FLOWCHART | DIAGRAM",
-          "codeSnippet": "...or empty if not a code snippet..."
+          "answerType": "...",
+          "codeSnippet": "..."
         }
       ]
     }
-    No extra fields beyond these!
   `;
 
   try {
@@ -78,7 +82,7 @@ export async function generateFlashcardsForTopic(topic, authorName = null) {
 
     const assistantMessage = completion.choices[0].message;
     if (assistantMessage.refusal) {
-      console.warn(`[cardGeneration] Model refused to generate cards for topic ${topic.name}`);
+      console.warn(`[cardGeneration] Model refused to generate cards for topic: ${topic.name}`);
       return;
     }
 
@@ -88,12 +92,13 @@ export async function generateFlashcardsForTopic(topic, authorName = null) {
       return;
     }
 
+    // Limit to 10
     let aiCards = parsedData.cards;
     if (aiCards.length > 10) {
       aiCards = aiCards.slice(0, 10);
     }
 
-    const createPromises = aiCards.map(card => {
+    const createPromises = aiCards.map((card) => {
       const newCard = {
         question: card.question,
         answer: card.answer,
@@ -106,32 +111,72 @@ export async function generateFlashcardsForTopic(topic, authorName = null) {
       };
       return cardService.create(newCard);
     });
+
     await Promise.all(createPromises);
 
-    await topicService.update(topic.id, { cardsGenerated: 'YES' });
+    // Mark this topic as having generated cards
+    await topicService.updateTopic(topic.id, { cardsGenerated: 'YES' });
+
     console.log(`[cardGeneration] Done generating flashcards for topic: "${topic.name}".`);
   } catch (error) {
     console.error(`[cardGeneration] Error generating flashcards for topic ${topic.name}:`, error);
   }
 }
 
+/**
+ * generateCardsForAllPendingTopics(authorName)
+ * Finds all topics with `cardsGenerated = null` and calls generateFlashcardsForTopic on each.
+ */
 export async function generateCardsForAllPendingTopics(authorName = null) {
-  console.log('\n[cardGeneration] generateCardsForAllPendingTopics => Looking for topics with cardsGenerated = null...');
+  console.log('[cardGeneration] Looking for topics where cardsGenerated=null...');
   const topics = await topicService.findManyByCardsGeneratedNull();
-  console.log(`[cardGeneration] Found ${topics.length} topic(s) needing flashcards generation.`);
+  console.log(`[cardGeneration] Found ${topics.length} topic(s) needing flashcards.`);
 
-  const promises = topics.map(topic => limit(() => generateFlashcardsForTopic(topic, authorName)));
+  const promises = topics.map((topic) => limit(() => generateFlashcardsForTopic(topic, authorName)));
   await Promise.all(promises);
+
   console.log('[cardGeneration] All pending flashcards generation tasks completed.');
   return { message: `Generated flashcards for ${topics.length} topics.` };
 }
 
+/**
+ * generateCardsForAllPendingTopicsInSubtree(parentTopicId, authorName)
+ * - Gathers all descendant topics plus the parent
+ * - Filters to those with cardsGenerated=null
+ * - Generates flashcards for each
+ */
+export async function generateCardsForAllPendingTopicsInSubtree(parentTopicId, authorName = null) {
+  console.log(`[cardGeneration] Descendant topics for parent ID: ${parentTopicId}...`);
+  const allDescIds = await topicService.findAllDescendantTopicIds(parentTopicId);
+  allDescIds.push(parentTopicId);
+
+  // Find topics in that subtree with cardsGenerated=null
+  const topicsInSubtree = await topicService.findMany({
+    where: {
+      id: { in: allDescIds },
+      cardsGenerated: null,
+    },
+  });
+
+  console.log(`[cardGeneration] Found ${topicsInSubtree.length} subtree topics needing flashcards.`);
+
+  const promises = topicsInSubtree.map((topic) => limit(() => generateFlashcardsForTopic(topic, authorName)));
+  await Promise.all(promises);
+
+  console.log('[cardGeneration] Subtree-based flashcards generation done.');
+  return { message: `Generated flashcards for ${topicsInSubtree.length} topics in the subtree.` };
+}
+
+/**
+ * generateMoreCardsForTopic(topic, additionalCount, authorName)
+ * Asks AI for additional (non-duplicate) flashcards.
+ */
 export async function generateMoreCardsForTopic(topic, additionalCount = 5, authorName = null) {
   console.log(`\n[cardGeneration] generateMoreCardsForTopic => Topic: "${topic.name}" (ID: ${topic.id})`);
-  console.log(`[cardGeneration] We want ${additionalCount} *new* cards for this topic.`);
+  console.log(`[cardGeneration] We want ${additionalCount} *new* cards.`);
 
   const existingCards = await cardService.findByTopicId(topic.id);
-  const existingQuestions = existingCards.map(c => c.question.trim());
+  const existingQuestions = existingCards.map((c) => c.question.trim());
 
   let parentTopicName = '';
   if (topic.parentTopicId) {
@@ -140,27 +185,14 @@ export async function generateMoreCardsForTopic(topic, additionalCount = 5, auth
   }
 
   const systemMessage = `
-    You are an AI that generates *additional* flashcards for the topic "${topic.name}"
-    in the context of its parent topic "${parentTopicName || 'none'}".
+    You are an AI generating *additional* flashcards for "${topic.name}"
+    (parent: "${parentTopicName || 'none'}").
 
-    We already have these questions (avoid duplicates):
+    Already have these questions:
     - ${existingQuestions.join('\n- ')}
 
-    Generate exactly ${additionalCount} new flashcards that do not repeat any of the above questions.
-    Each flashcard must have ONLY these fields:
-      - question
-      - answer
-      - answerType (NONE, CODE_SNIPPET, FLOWCHART, DIAGRAM)
-      - codeSnippet (string, optional if code snippet)
-
-    If you choose CODE_SNIPPET, provide ONLY the relevant code snippet in codeSnippet as plain text.
-
-    Return JSON:
-    {
-      "cards": [
-        { "question": "...", "answer": "...", "answerType": "...", "codeSnippet": "..." }
-      ]
-    }
+    Generate exactly ${additionalCount} new flashcards with no duplicates.
+    Each card: { question, answer, answerType, codeSnippet? }
   `;
 
   try {
@@ -174,17 +206,17 @@ export async function generateMoreCardsForTopic(topic, additionalCount = 5, auth
 
     const assistantMessage = completion.choices[0].message;
     if (assistantMessage.refusal) {
-      console.warn(`[cardGeneration] Model refused to generate additional cards for topic: ${topic.name}`);
+      console.warn(`[cardGeneration] Model refused additional cards for topic: ${topic.name}`);
       return [];
     }
 
     const parsedData = assistantMessage.parsed;
     if (!Array.isArray(parsedData.cards)) {
-      console.warn(`[cardGeneration] No valid "cards" array found for "${topic.name}".`);
+      console.warn(`[cardGeneration] No valid "cards" array found for: ${topic.name}.`);
       return [];
     }
 
-    const createPromises = parsedData.cards.map(card => {
+    const createPromises = parsedData.cards.map((card) => {
       return cardService.create({
         question: card.question,
         answer: card.answer,
@@ -197,7 +229,7 @@ export async function generateMoreCardsForTopic(topic, additionalCount = 5, auth
       });
     });
     const createdCards = await Promise.all(createPromises);
-    console.log(`[cardGeneration] Created ${createdCards.length} additional cards for topic "${topic.name}".`);
+    console.log(`[cardGeneration] Created ${createdCards.length} additional cards for "${topic.name}".`);
     return createdCards;
   } catch (error) {
     console.error(`[cardGeneration] Error generating additional flashcards for "${topic.name}":`, error);
