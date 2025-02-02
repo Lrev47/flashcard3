@@ -1,3 +1,5 @@
+//prisma/schema.prisma
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -35,19 +37,26 @@ model User {
   documents     Document[]
 
   // Blog relationships
-  blogComments BlogComment[] // This user wrote these comments
+  blogComments BlogComment[]
+  blogPosts    BlogPost[]
+
+  // Resume-related
+  resumes         Resume[]
+  jobPostings     JobPosting[]
+  tailoredResumes TailoredResume[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Document {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  fileName  String
-  mimeType  String?
-  fileData  Bytes? // Or store an S3 link instead
+  id       String  @id @default(uuid())
+  userId   String
+  user     User    @relation(fields: [userId], references: [id])
+  fileName String
+  mimeType String?
+  fileData Bytes? // Or store an S3 link instead
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -58,9 +67,10 @@ model Document {
 }
 
 model Topic {
-  id       String  @id @default(uuid())
-  name     String
-  overview String?
+  id             String  @id @default(uuid())
+  name           String
+  overview       String?
+  cardsGenerated String?
 
   // Self-relation for subtopics
   parentTopicId String?
@@ -115,10 +125,10 @@ model Card {
   // Instead of a "detailedExplanation" string, we point to a separate model
   explanation DetailedExplanation?
 
-  resources  Json?
-  examples   Json?
-  isEnhanced Boolean?
-  isVerified Boolean?
+  resources         Json?
+  examples          Json?
+  DetailesGenerated String?
+  isVerified        Boolean?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -147,8 +157,9 @@ model ExplanationBlock {
   explanationId String
   explanation   DetailedExplanation @relation(fields: [explanationId], references: [id])
 
-  blockType ExplanationBlockType
-  content   String? // For TEXT, this is text. For IMAGE/VIDEO, store the URL.
+  blockType  ExplanationBlockType
+  blockTitle String?
+  content    String? // For TEXT, this is text. For IMAGE/VIDEO, store the URL.
 
   // optional ordering if you want to specify the sequence
   order Int?
@@ -238,8 +249,9 @@ model BlogPost {
   topLevelImage String?
   header        String // main title
   tagline       String?
-  authorId      String
-  author        String
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
 
   // Up to three paragraphs, you can expand if you need more
   paragraph1Title String?
@@ -268,6 +280,129 @@ model BlogComment {
 
   blogPostId String
   blogPost   BlogPost @relation(fields: [blogPostId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// --------------- Resume Models ---------------
+
+model Resume {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  name        String?
+  city        String?
+  state       String?
+  zip         String?
+  phone       String?
+  email       String?
+  linkedinUrl String?
+  githubUrl   String?
+  summary     String?
+
+  education       Education[]
+  experiences     Experience[]
+  projects        Project[]
+  skillGroups     SkillGroup[]
+  tailoredResumes TailoredResume[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Education {
+  id       String @id @default(uuid())
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id])
+
+  institution  String
+  degree       String?
+  fieldOfStudy String?
+  startDate    DateTime?
+  endDate      DateTime?
+
+  bulletPoints String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Experience {
+  id       String @id @default(uuid())
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id])
+
+  roleTitle String
+  company   String
+  location  String?
+  startDate DateTime?
+  endDate   DateTime?
+
+  responsibilities String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Project {
+  id       String @id @default(uuid())
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id])
+
+  title            String
+  technologiesUsed String[]
+  bulletPoints     String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SkillGroup {
+  id       String @id @default(uuid())
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id])
+
+  name   String
+  skills String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model JobPosting {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  // The raw or initial text the user pasted
+  initalListing String
+
+  companyName    String?
+  jobTitle       String?
+  jobDescription String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // If you want the reverse relation from JobPosting -> TailoredResume
+  tailoredResumes TailoredResume[]
+}
+
+model TailoredResume {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id])
+
+  jobPostingId String
+  jobPosting   JobPosting @relation(fields: [jobPostingId], references: [id])
+
+  // The final curated resume content as text or markdown, etc.
+  content String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
