@@ -6,102 +6,113 @@ import { generatePDF } from '../services/pdfGenerator.js';
 import cardService from '../services/cardService.js';
 
 /**
- * GET /cards/:topicId/pdf
- * Generate a printable PDF of flashcards for a given topic (+ subtopics).
- * Query params:
- *   ?layout=layout1
- *   &style=design1
+ * GET /cards/:deckId/pdf
  */
 export async function generateFlashcardsPDFHandler(req, res) {
   try {
-    const { topicId } = req.params;
+    const { deckId } = req.params;
     const layoutName = req.query.layout || 'layout1';
     const styleName = req.query.style || 'design1';
 
-    if (!topicId) {
-      return res.status(400).json({ message: 'Please provide a topicId in the URL.' });
+    console.log('\n[generateFlashcardsPDFHandler] START => deckId:', deckId, ' layout:', layoutName, ' style:', styleName);
+
+    if (!deckId) {
+      return res.status(400).json({ message: 'Please provide a deckId in the URL.' });
     }
 
-    // 1) Gather cards for that topic and subtopics
-    const cards = await cardService.findAllByParentTopicIdIncludeSubtopics(topicId);
+    // 1) Gather cards
+    const cards = await cardService.findCardsByDeckId(deckId);
+    console.log(`[generateFlashcardsPDFHandler] cards.length = ${cards.length}`);
+    cards.forEach((c, i) => {
+      console.log(` - card[${i}] id=${c.id}, question=${c.question}`);
+      // Log if there's a promise somewhere
+      Object.keys(c).forEach((key) => {
+        if (typeof c[key] === 'object' && c[key] !== null && typeof c[key].then === 'function') {
+          console.log(`   *** WARNING: card[${i}].${key} is a PROMISE!`, c[key]);
+        }
+      });
+    });
+
     if (!cards.length) {
-      return res.status(404).json({ message: 'No cards found for this topic or its subtopics.' });
+      return res.status(404).json({ message: `No cards found for deck ID: ${deckId}` });
     }
 
-    // 2) Build the path to the layout e.g. layout1.ejs
-    // We'll assume your file is at /flashCards/templates/layouts/layout1.ejs
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    const templatePath = path.join(
-      __dirname,
-      '..',            // up to controllers
-      'templates',
-      'layouts',
-      `${layoutName}.ejs`,
-    );
+    const templatePath = path.join(__dirname, '..', 'templates', 'layouts', `${layoutName}.ejs`);
 
-    // 3) Prepare data for EJS
-    // style = 'design1' to pick the correct design
-    // cards = array of card objects
+    // 2) EJS data
     const ejsData = {
       style: styleName,
       cards,
     };
 
-    // 4) Generate PDF
+    console.log('[generateFlashcardsPDFHandler] templatePath:', templatePath);
+
+    // 3) Generate PDF
     const pdfBuffer = await generatePDF(templatePath, ejsData, {
       pdfOptions: { format: 'Letter' },
-      launchOptions: { headless: true },  // or 'new' in puppeteer v20
+      launchOptions: { headless: true },
     });
 
-    // 5) Return the PDF as a download
+    // 4) Return PDF
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${layoutName}-${styleName}.pdf"`);
+    res.setHeader('Content-Disposition', `attachment; filename="deck-${deckId}-${layoutName}-${styleName}.pdf"`);
     return res.send(pdfBuffer);
 
   } catch (error) {
-    console.error('[pdfController] Error generating flashcards PDF:', error);
+    console.error('[pdfController] Error generating flashcards PDF by Deck:', error);
     return res.status(500).json({ message: 'Error generating PDF', error });
   }
 }
 
 
 /**
- * GET /cards/preview?layout=layout1&style=design1
- * Renders the EJS in plain HTML so the user can "preview" what it looks like
- * before actually downloading the PDF. This is optional, but can help.
+ * GET /cards/:deckId/preview?layout=layout1&style=design1
  */
 export async function previewFlashcardsHTMLHandler(req, res) {
   try {
-    const { topicId } = req.params;
+    const { deckId } = req.params;
     const layoutName = req.query.layout || 'layout1';
     const styleName = req.query.style || 'design1';
 
-    // We can just re-use the same data logic from above,
-    // or in a real scenario you might pass some dummy data or test cards.
+    console.log('\n[previewFlashcardsHTMLHandler] START => deckId:', deckId, ' layout:', layoutName, ' style:', styleName);
 
-    if (!topicId) {
-      return res.status(400).send('No topicId provided.');
+    if (!deckId) {
+      return res.status(400).send('No deckId provided.');
     }
 
-    const cards = await cardService.findAllByParentTopicIdIncludeSubtopics(topicId);
+    // 1) Gather cards
+    const cards = await cardService.findCardsByDeckId(deckId);
+    console.log(`[previewFlashcardsHTMLHandler] cards.length = ${cards.length}`);
+    cards.forEach((c, i) => {
+      console.log(` - card[${i}] id=${c.id}, question=${c.question}`);
+      // Check if any property is a promise
+      Object.keys(c).forEach((key) => {
+        if (typeof c[key] === 'object' && c[key] !== null && typeof c[key].then === 'function') {
+          console.log(`   *** WARNING: card[${i}].${key} is a PROMISE!`, c[key]);
+        }
+      });
+    });
+
     if (!cards.length) {
-      return res.status(404).send('No cards found for this topic or its subtopics.');
+      return res.status(404).send(`No cards found for deck ID: ${deckId}`);
     }
 
-    // Manually render the EJS to an HTML string and send it
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
     const templatePath = path.join(__dirname, '..', 'templates', 'layouts', `${layoutName}.ejs`);
+    console.log('[previewFlashcardsHTMLHandler] templatePath:', templatePath);
 
-    // Import ejs directly here
+    // 2) Render EJS
     const ejs = await import('ejs');
     const htmlString = await ejs.renderFile(templatePath, { style: styleName, cards }, { async: true });
 
-    // Send as plain HTML
+    console.log('[previewFlashcardsHTMLHandler] EJS render complete. Sending HTML...');
+
     res.setHeader('Content-Type', 'text/html');
-    res.send(htmlString);
+    return res.send(htmlString);
 
   } catch (error) {
-    console.error('[pdfController] Error previewing flashcards HTML:', error);
-    res.status(500).send('Error generating preview');
+    console.error('[pdfController] Error previewing flashcards HTML by Deck:', error);
+    return res.status(500).send('Error generating preview');
   }
 }

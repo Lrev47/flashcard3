@@ -86,12 +86,12 @@ router.post('/docAll', docAllCardsHandler);
 router.post('/masterGenerate', masterGenerateHandler);
 
 /* ===========================================================================
-   6) PDF GENERATION
+   6) PDF GENERATION (by deckId)
    ========================================================================== */
-// e.g. GET /cards/:topicId/pdf?layout=layout1&style=design1
-router.get('/:topicId/pdf', generateFlashcardsPDFHandler);
+// e.g. GET /cards/DECK123/pdf?layout=layout1&style=design1
+router.get('/:deckId/pdf', generateFlashcardsPDFHandler);
 
-// e.g. GET /cards/:topicId/preview?layout=layout1&style=design1
-router.get('/:topicId/preview', previewFlashcardsHTMLHandler);
+// e.g. GET /cards/DECK123/preview?layout=layout1&style=design1
+router.get('/:deckId/preview', previewFlashcardsHTMLHandler);
 
 export default router;

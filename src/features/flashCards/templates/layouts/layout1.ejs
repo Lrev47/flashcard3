@@ -1,6 +1,3 @@
-<!-- src/features/flashCards/templates/layouts/layout1.ejs -->
-
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -33,7 +30,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      hljs.highlightAll();
+      hljs.highlightAll(); // highlight code blocks
 
       const cardBacks = document.querySelectorAll('.card-back');
       cardBacks.forEach(cardBack => {
@@ -97,6 +94,8 @@
 <body>
 
   <% 
+    console.log("[layout1.ejs] => style=", style, " totalCards=", cards.length);
+
     const cardsPerSheet = 8;
     const totalCards = cards.length;
     const totalSheets = Math.ceil(totalCards / cardsPerSheet);
@@ -106,6 +105,8 @@
        const startIndex = s * cardsPerSheet;
        const endIndex = Math.min(startIndex + cardsPerSheet, totalCards);
        const chunkCards = cards.slice(startIndex, endIndex);
+
+       console.log("[layout1.ejs] sheet index=", s, " chunkCards.length=", chunkCards.length);
   %>
     <!-- FRONT page for these 8 (or fewer) cards -->
     <div class="page">
@@ -113,10 +114,11 @@
            const cardIndex = startIndex + i;
            if (cardIndex < totalCards) {
              const cardData = cards[cardIndex];
+             console.log("[layout1.ejs] s=", s, " i=", i, " cardId=", cardData.id);
       %>
         <div class="card-slot card-slot<%= i+1 %>">
           <div class="rotated-card">
-            <!-- Include the design1.ejs (or design2, etc.) for the FRONT side -->
+            <!-- Include the design (e.g. design1.ejs) for the FRONT side -->
             <%- include(
               `../designs/${style}.ejs`,
               {
@@ -138,6 +140,7 @@
            const cardIndex = startIndex + i;
            if (cardIndex < totalCards) {
              const cardData = cards[cardIndex];
+             console.log("[layout1.ejs BACK] s=", s, " i=", i, " cardId=", cardData.id);
       %>
         <div class="card-slot card-slot<%= i+1 %>">
           <div class="rotated-card">

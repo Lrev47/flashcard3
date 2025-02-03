@@ -1,10 +1,20 @@
-<!-- src/features/flashCards/templates/designs/design1.ejs -->
-<% 
-// We'll assume you pass in: 
-//   side: 'front' or 'back'
-//   card: the current flashcard object
-//   parentTopicName: optional (could also be in card.parentTopicName)
+<%
+  // We'll assume you pass in:
+  //   side: 'front' or 'back'
+  //   card: the current flashcard object
+  //   parentTopicName: optional (could also be in card.parentTopicName)
+
+  console.log("[design1.ejs] side=", side, "card.id=", card.id, "card.question=", card.question);
+
+  // Just in case:
+  if (typeof parentTopicName === 'object' && parentTopicName !== null && typeof parentTopicName.then === 'function') {
+    console.log("[design1.ejs] WARNING: parentTopicName is a Promise!", parentTopicName);
+  }
+  if (typeof card.difficulty === 'object' && card.difficulty !== null && typeof card.difficulty.then === 'function') {
+    console.log("[design1.ejs] WARNING: card.difficulty is a Promise!", card.difficulty);
+  }
 %>
+
 <style>
   /********************************
    * FRONT SIDE STYLES
@@ -104,8 +114,8 @@
 </style>
 
 <% if (side === 'front') { %>
-  <!-- ================== FRONT ================== -->
-  <% 
+  <!-- ================== FRONT SIDE ================== -->
+  <%
     // Difficulty logic
     let difficultySymbol = '?';
     let difficultyClass = '';
@@ -119,6 +129,7 @@
       case 'HARD':
         difficultySymbol = 'H'; difficultyClass = 'hard';
         break;
+      // otherwise remains '?' / no class
     }
   %>
 
@@ -153,26 +164,29 @@
   </div>
 
 <% } else { %>
-  <!-- ================== BACK ================== -->
+  <!-- ================== BACK SIDE ================== -->
   <div class="card-back">
     <div class="scalable-content">
       <h3 class="card-answer"><%= card.answer %></h3>
 
-      <% if (
-          card.answerType === 'CODE_SNIPPET' &&
-          card.examples &&
-          card.examples.code
-      ) { %>
+      <% 
+        // Show code snippet if answerType is CODE_SNIPPET and examples.code is a string
+        if (
+          card.answerType === 'CODE_SNIPPET'
+          && card.examples
+          && typeof card.examples.code === 'string'
+        ) { 
+      %>
         <pre class="code-snippet">
-          <code class="<%= card.examples.language ? `language-${card.examples.language}` : '' %>">
+          <code class="<%= card.examples.language ? ('language-' + card.examples.language) : '' %>">
 <%= card.examples.code %>
           </code>
         </pre>
       <% } else if (
-          card.answerType === 'DIAGRAM' &&
-          card.examples &&
-          card.examples.diagramUrl
-      ) { %>
+          card.answerType === 'DIAGRAM'
+          && card.examples
+          && card.examples.diagramUrl
+        ) { %>
         <img
           class="diagram-img"
           src="<%= card.examples.diagramUrl %>"

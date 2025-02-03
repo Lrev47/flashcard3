@@ -124,9 +124,12 @@ const cardService = {
    * Recursively find all cards under a parent topic and its subtopics.
    */
   async findAllByParentTopicIdIncludeSubtopics(parentTopicId) {
-    const allTopicIds = await topicService.findAllDescendantTopicIds(parentTopicId);
+    console.log('[findAllByParentTopicIdIncludeSubtopics] parentTopicId=', parentTopicId);
 
-    return prisma.card.findMany({
+    const allTopicIds = await topicService.findAllDescendantTopicIds(parentTopicId);
+    console.log('[findAllByParentTopicIdIncludeSubtopics] allTopicIds=', allTopicIds);
+
+    const results = await prisma.card.findMany({
       where: { topicId: { in: allTopicIds } },
       include: {
         topic: true,
@@ -134,20 +137,33 @@ const cardService = {
         explanation: { include: { blocks: true } },
       },
     });
+    console.log(`[findAllByParentTopicIdIncludeSubtopics] returning ${results.length} cards...`);
+    return results;
   },
 
   /**
    * Find all cards associated with a Deck by referencing the deck's topic (and subtopics).
    */
   async findCardsByDeckId(deckId) {
+    console.log('[findCardsByDeckId] deckId=', deckId);
     const deck = await prisma.deck.findUnique({
       where: { id: deckId },
       select: { topicId: true },
     });
-    if (!deck) throw new Error(`Deck not found with ID ${deckId}`);
-    if (!deck.topicId) return [];
 
-    return this.findAllByParentTopicIdIncludeSubtopics(deck.topicId);
+    console.log('[findCardsByDeckId] deck=', deck);
+
+    if (!deck) {
+      throw new Error(`Deck not found with ID ${deckId}`);
+    }
+    if (!deck.topicId) {
+      console.log('[findCardsByDeckId] deck.topicId is null => returning []');
+      return [];
+    }
+
+    const cards = await this.findAllByParentTopicIdIncludeSubtopics(deck.topicId);
+    console.log(`[findCardsByDeckId] found ${cards.length} cards by topicId=`, deck.topicId);
+    return cards;
   },
 
   /**
