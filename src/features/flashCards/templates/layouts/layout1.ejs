@@ -1,5 +1,6 @@
 <!-- src/features/flashCards/templates/layouts/layout1.ejs -->
 
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -115,14 +116,14 @@
       %>
         <div class="card-slot card-slot<%= i+1 %>">
           <div class="rotated-card">
-            <!-- Instead of front.ejs, include the single design file with side='front' -->
+            <!-- Include the design1.ejs (or design2, etc.) for the FRONT side -->
             <%- include(
-                  `../CardStyles/${style}/${style}.ejs`, 
-                  {
-                    card: cardData,
-                    side: 'front',
-                    parentTopicName: cardData.parentTopicName
-                  }
+              `../designs/${style}.ejs`,
+              {
+                card: cardData,
+                side: 'front',
+                parentTopicName: cardData.parentTopicName
+              }
             ) %>
           </div>
         </div>
@@ -140,13 +141,13 @@
       %>
         <div class="card-slot card-slot<%= i+1 %>">
           <div class="rotated-card">
-            <!-- Instead of back.ejs, include the same design file with side='back' -->
+            <!-- Include the same design file for the BACK side -->
             <%- include(
-                  `../CardStyles/${style}/${style}.ejs`, 
-                  {
-                    card: cardData,
-                    side: 'back'
-                  }
+              `../designs/${style}.ejs`,
+              {
+                card: cardData,
+                side: 'back'
+              }
             ) %>
           </div>
         </div>

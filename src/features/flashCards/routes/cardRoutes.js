@@ -30,6 +30,13 @@ import {
   generateMissingQRCodesHandler,
 } from '../controllers/cardController.js';
 
+
+// NEW imports for PDF preview & generation
+import {
+   generateFlashcardsPDFHandler,
+   previewFlashcardsHTMLHandler,
+ } from '../controllers/pdfController.js';
+
 const router = Router();
 
 /* ===========================================================================
@@ -77,5 +84,14 @@ router.post('/generateMore/:topicId', generateMoreCardsHandler);
 router.post('/generate', generateCardsHandler);
 router.post('/docAll', docAllCardsHandler);
 router.post('/masterGenerate', masterGenerateHandler);
+
+/* ===========================================================================
+   6) PDF GENERATION
+   ========================================================================== */
+// e.g. GET /cards/:topicId/pdf?layout=layout1&style=design1
+router.get('/:topicId/pdf', generateFlashcardsPDFHandler);
+
+// e.g. GET /cards/:topicId/preview?layout=layout1&style=design1
+router.get('/:topicId/preview', previewFlashcardsHTMLHandler);
 
 export default router;
