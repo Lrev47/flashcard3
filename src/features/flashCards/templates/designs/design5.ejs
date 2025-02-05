@@ -1,0 +1,115 @@
+<!-- /src/features/flashCards/templates/designs/design5.ejs -->
+<style>
+    /* Bold black and gold design */
+  
+    .card-front,
+    .card-back {
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      padding: 5%;
+      position: relative;
+      /* Luxurious black background */
+      background-color: #000000;
+      /* A classy sans-serif. Fallback to Arial if Montserrat isn’t available. */
+      font-family: "Montserrat", Arial, sans-serif;
+      color: #FFD700; /* gold text */
+    }
+  
+    /* Thick gold border and subtle rounding */
+    .card-front {
+      border: 3px solid #FFD700;
+      border-radius: 6px;
+    }
+    .card-back {
+      border: 3px solid #FFD700;
+      border-radius: 6px;
+    }
+  
+    /* QR code: mid-page, dashed gold outline */
+    .qr-code-area {
+      width: 30%;
+      aspect-ratio: 1 / 1;
+      margin: 0 auto 5%;
+      border: 2px dashed #FFD700;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-sizing: border-box;
+      font-size: 0.8em;
+    }
+  
+    /* Large, center question in gold, with a subtle glow */
+    .card-question {
+      text-align: center;
+      font-size: 1.3em;
+      font-weight: 600;
+      margin-top: 10%;
+      text-transform: uppercase;
+      text-shadow: 0 0 5px rgba(255, 215, 0, 0.7);
+    }
+  
+    .bottom-info {
+      position: absolute;
+      left: 0; right: 0; bottom: 5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9em;
+    }
+    .topic-center {
+      flex: 1;
+      text-align: center;
+    }
+    .author-right {
+      flex: 1;
+      text-align: right;
+    }
+  
+    /* Back side: bold text in gold, slight text-shadow for readability */
+    .scalable-content {
+      font-size: 1.1em;
+      line-height: 1.4;
+      text-shadow: 0 0 4px rgba(255, 215, 0, 0.6);
+    }
+    .card-answer {
+      margin-top: 5%;
+      text-align: center;
+      font-size: 1.3em;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .card-example {
+      text-align: center;
+      margin-top: 4%;
+      font-size: 1em;
+      font-style: italic;
+      color: #FFE600; /* slightly brighter than #FFD700 */
+    }
+  
+    @media print {
+      .card-front, .card-back {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+  
+  <% if (side === 'front') { %>
+    <div class="card-front">
+      <div class="qr-code-area">QR</div>
+      <h2 class="card-question">Lux Question</h2>
+      <div class="bottom-info">
+        <span class="topic-center">Gold Topic</span>
+        <span class="author-right">By Prestige</span>
+      </div>
+    </div>
+  <% } else { %>
+    <div class="card-back">
+      <div class="scalable-content">
+        <h3 class="card-answer">Golden Answer</h3>
+        <p class="card-example">“A shining example.”</p>
+      </div>
+    </div>
+  <% } %>
+  
