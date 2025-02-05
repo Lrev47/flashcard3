@@ -1,198 +1,254 @@
-<%
-  // We'll assume you pass in:
-  //   side: 'front' or 'back'
-  //   card: the current flashcard object
-  //   parentTopicName: optional (could also be in card.parentTopicName)
-
-  console.log("[design1.ejs] side=", side, "card.id=", card.id, "card.question=", card.question);
-
-  // Just in case:
-  if (typeof parentTopicName === 'object' && parentTopicName !== null && typeof parentTopicName.then === 'function') {
-    console.log("[design1.ejs] WARNING: parentTopicName is a Promise!", parentTopicName);
-  }
-  if (typeof card.difficulty === 'object' && card.difficulty !== null && typeof card.difficulty.then === 'function') {
-    console.log("[design1.ejs] WARNING: card.difficulty is a Promise!", card.difficulty);
-  }
-%>
-
+<!-- /src/features/flashCards/templates/design1.ejs -->
 <style>
-  /********************************
-   * FRONT SIDE STYLES
-   ********************************/
-  .card-front {
-    width: 2.25in;
-    height: 3.5in;
-    border: 1px solid #000;
-    border-radius: 6px;
+  .card-front, .card-back {
+    width: 100%;
+    height: 100%;
     box-sizing: border-box;
+    padding: 5%;
     position: relative;
-    padding: 0.5rem;
-    margin: 0.5rem;
+    font-family: Arial, sans-serif;
+    border: none;
+    border-radius: 0;
   }
-  .card-front .qr-code-area {
-    width: 0.8in;
-    height: 0.8in;
-    margin: 0 auto 0.5rem;
+
+  .qr-code-area {
+    width: 30%;
+    aspect-ratio: 1 / 1;
+    margin: 0 auto 5%;
     border: 1px dashed #888;
     display: flex;
     justify-content: center;
     align-items: center;
+    box-sizing: border-box;
   }
-  .card-front .card-question {
+  .qr-code-area img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+
+  .card-question {
     text-align: center;
-    font-size: 1.1rem;
-    width: 1.5in;
-    margin: 2rem auto 0;
+    font-size: 1.2em;
+    margin-top: 10%;
   }
-  .card-front .bottom-info {
+
+  /*
+    The bottom-info area:
+    We'll make the topic & author smaller for a more subtle appearance.
+  */
+  .bottom-info {
     position: absolute;
-    bottom: 0.5rem;
     left: 0;
     right: 0;
+    bottom: 5%;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 0.5rem;
   }
   .bottom-info span {
-    flex: 1;
-  }
-  .difficulty-left {
-    text-align: left;
+    font-size: 0.75em; /* smaller text for topic & author */
+    color: #333;       /* or any color you want */
   }
   .topic-center {
     text-align: center;
+    flex: 1;
   }
   .author-right {
     text-align: right;
+    flex: 1;
   }
-  .easy { color: green; font-weight: bold; }
-  .medium { color: orange; font-weight: bold; }
-  .hard { color: red; font-weight: bold; }
 
-  /********************************
-   * BACK SIDE STYLES
-   ********************************/
-  .card-back {
-    width: 2.25in;
-    height: 3.5in;
-    border: 1px solid #000;
-    border-radius: 6px;
-    box-sizing: border-box;
-    position: relative;
-    padding: 0.5rem;
-    margin: 0.5rem;
-    overflow: hidden;
-  }
+  /* Freed vertical space: no fixed height or overflow hidden. */
   .scalable-content {
-    font-size: 1rem;
-    line-height: 1.4;
+    font-size: 0.9em;
+    line-height: 1.2;
+    position: relative;
+    width: 100%;
+    /* No height:100% or overflow:hidden => code can extend downward if smaller */
   }
-  .scalable-content .card-answer {
-    margin-top: 0.2in;
+
+  .card-answer {
+    margin-top: 5%;
     text-align: center;
     display: block;
   }
-  .scalable-content .code-snippet {
-    border-radius: 4px;
-    overflow: hidden;
+
+  /*
+    If we do display an example, it's here.
+    We'll hide it entirely if there's no example or atype === 'NONE'.
+  */
+  .card-example {
+    text-align: center;
+    margin-top: 4%;
+    color: #555;
+    font-size: 0.9em;
   }
-  .scalable-content .code-snippet code {
-    display: block;
+
+  /* Ensure code wraps lines so it won't bleed horizontally */
+  pre.hljs, code.hljs {
     white-space: pre-wrap;
-    word-break: break-word;
-    margin: 0;
-    padding: 0.5rem;
-    border-radius: 4px;
+    word-wrap: break-word;
   }
-  .scalable-content .diagram-img {
-    display: block;
-    margin: 1rem auto 0;
-    max-width: 100%;
-    max-height: calc(3.5in - 2rem);
+
+  /* Container for code snippet measuring/scaling (down only) */
+  .code-scale-wrapper {
+    position: relative;
+    width: 100%;
+    margin-top: 1em; 
+  }
+  .code-scale-inner {
+    display: inline-block;
+    transform-origin: top left;
   }
 </style>
 
 <% if (side === 'front') { %>
-  <!-- ================== FRONT SIDE ================== -->
-  <%
-    // Difficulty logic
-    let difficultySymbol = '?';
-    let difficultyClass = '';
-    switch (card.difficulty) {
-      case 'EASY':
-        difficultySymbol = 'E'; difficultyClass = 'easy';
-        break;
-      case 'MEDIUM':
-        difficultySymbol = 'M'; difficultyClass = 'medium';
-        break;
-      case 'HARD':
-        difficultySymbol = 'H'; difficultyClass = 'hard';
-        break;
-      // otherwise remains '?' / no class
-    }
-  %>
-
+  <!-- FRONT SIDE -->
   <div class="card-front">
     <div class="qr-code-area">
-      <% if (card.qrCodeUrl) { %>
-        <img
-          src="<%= card.qrCodeUrl %>"
-          alt="QR Code"
-          style="max-width: 100%; max-height: 100%;"
-        />
+      <% if (card && card.qrCodeUrl) { %>
+        <img src="<%= card.qrCodeUrl %>" alt="QR Code" />
       <% } else { %>
-        <span>No QR</span>
+        No QR Code
       <% } %>
     </div>
 
-    <h2 class="card-question"><%= card.question %></h2>
+    <h2 class="card-question">
+      <%= card && card.question ? card.question : 'No question provided' %>
+    </h2>
 
     <div class="bottom-info">
-      <span class="difficulty-left <%= difficultyClass %>">
-        <%= difficultySymbol %>
-      </span>
-      
       <span class="topic-center">
-        <%= parentTopicName || '' %>
+        <%= (card && card.topic && card.topic.name) ? card.topic.name : '' %>
       </span>
-      
       <span class="author-right">
-        <%= card.authorName %>
+        <%= card && card.authorName ? card.authorName : '' %>
       </span>
     </div>
   </div>
 
 <% } else { %>
-  <!-- ================== BACK SIDE ================== -->
+  <!-- BACK SIDE -->
   <div class="card-back">
     <div class="scalable-content">
-      <h3 class="card-answer"><%= card.answer %></h3>
 
-      <% 
-        // Show code snippet if answerType is CODE_SNIPPET and examples.code is a string
-        if (
-          card.answerType === 'CODE_SNIPPET'
-          && card.examples
-          && typeof card.examples.code === 'string'
-        ) { 
+      <!-- ANSWER -->
+      <h3 class="card-answer">
+        <%= card && card.answer ? card.answer : 'No answer provided' %>
+      </h3>
+
+      <!-- EXAMPLE AREA -->
+      <%
+        // We'll only render .card-example IF we have a valid "example".
+        // i.e. if there's a snippet, or a flowchart, or a non-empty string, etc.
+        // atype !== 'NONE' and we have some data in `examples`.
+        const hasCard = !!card;
+        const atype = hasCard ? card.answerType : null;
+        const examplesData = hasCard ? card.examples : null;
+        let shouldShowExample = false;
+
+        if (hasCard && examplesData) {
+          // If the user has CODE_SNIPPET, FLOWCHART, DIAGRAM, or some text 
+          // we can decide to show it
+          if (atype === 'CODE_SNIPPET' || atype === 'FLOWCHART' || atype === 'DIAGRAM') {
+            shouldShowExample = true;
+          } else if (atype === undefined || atype === null) {
+            // Possibly user has a "regular" example text? 
+            // If examplesData is not empty, we show it
+            shouldShowExample = true;
+          }
+        }
       %>
-        <pre class="code-snippet">
-          <code class="<%= card.examples.language ? ('language-' + card.examples.language) : '' %>">
-<%= card.examples.code %>
-          </code>
-        </pre>
-      <% } else if (
-          card.answerType === 'DIAGRAM'
-          && card.examples
-          && card.examples.diagramUrl
-        ) { %>
-        <img
-          class="diagram-img"
-          src="<%= card.examples.diagramUrl %>"
-          alt="Diagram"
-        />
+
+      <% if (hasCard && atype !== 'NONE' && shouldShowExample) { %>
+        <div class="card-example">
+          <% 
+            // Now handle CODE_SNIPPET vs. DIAGRAM vs. "regular"
+            if (atype === 'CODE_SNIPPET') { 
+          %>
+            <!-- CODE SNIPPETS, highlight them, scale down if too big -->
+            <%
+              const renderHighlighted = (rawCode) => {
+                if (typeof highlightCode === 'function') {
+                  return highlightCode(rawCode);
+                }
+                return rawCode; // fallback
+              };
+            %>
+
+            <% if (Array.isArray(examplesData)) { 
+                 examplesData.forEach(ex => {
+                   const codeContent = ex && ex.code ? ex.code : '';
+                   const snippetHtml = renderHighlighted(codeContent);
+            %>
+              <div class="code-scale-wrapper">
+                <div class="code-scale-inner">
+                  <pre class="hljs"><code class="hljs"><%- snippetHtml %></code></pre>
+                </div>
+              </div>
+            <%   });
+               } else {
+                 const codeContent = (examplesData && examplesData.code) 
+                   ? examplesData.code 
+                   : '';
+                 const snippetHtml = renderHighlighted(codeContent);
+            %>
+              <div class="code-scale-wrapper">
+                <div class="code-scale-inner">
+                  <pre class="hljs"><code class="hljs"><%- snippetHtml %></code></pre>
+                </div>
+              </div>
+            <% } %>
+
+          <% } else if (atype === 'FLOWCHART' || atype === 'DIAGRAM') { %>
+            <% if (typeof examplesData === 'string') { %>
+              <img src="<%= examplesData %>" alt="Flowchart/Diagram" style="max-width:100%;" />
+            <% } %>
+
+          <% } else { %>
+            <!-- Default or "regular" example text -->
+            <% if (Array.isArray(examplesData)) { %>
+              <%= examplesData.join(', ') %>
+            <% } else { %>
+              <%= examplesData %>
+            <% } %>
+          <% } %>
+        </div>
       <% } %>
-    </div>
-  </div>
+
+    </div><!-- END .scalable-content -->
+
+    <!-- SCALE-DOWN SCRIPT with bottom margin buffer -->
+    <script>
+      (function() {
+        const containers = document.querySelectorAll('.code-scale-wrapper');
+        containers.forEach(wrapper => {
+          const inner = wrapper.querySelector('.code-scale-inner');
+          if (!inner) return;
+
+          inner.style.transform = '';
+          inner.style.transformOrigin = 'top left';
+
+          const wrapRect  = wrapper.getBoundingClientRect();
+          const innerRect = inner.getBoundingClientRect();
+
+          // e.g. 10px bottom margin
+          const BOTTOM_MARGIN = 10;
+          let usableHeight = wrapRect.height - BOTTOM_MARGIN;
+          if (usableHeight < 0) usableHeight = 0;
+
+          let scaleW = wrapRect.width  / innerRect.width;
+          let scaleH = usableHeight    / innerRect.height;
+          let scale  = Math.min(scaleW, scaleH);
+
+          // only scale down if scale < 1
+          if (scale < 1) {
+            scale = Math.max(scale, 0.75); // don't go below 75%
+            inner.style.transform = 'scale(' + scale + ')';
+          }
+        });
+      })();
+    </script>
+  </div> <!-- END .card-back -->
 <% } %>
