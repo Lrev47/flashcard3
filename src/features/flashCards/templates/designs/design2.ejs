@@ -1,0 +1,218 @@
+<!-- /src/features/flashCards/templates/designs/design2.ejs -->
+<style>
+    /* Minimalist design: mostly white, subtle accents, clean typography */
+    .card-front,
+    .card-back {
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      padding: 5%;
+      position: relative;
+      background-color: #ffffff;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      color: #333;
+    }
+  
+    .card-front {
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+  
+    .card-back {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+  
+    .qr-code-area {
+      width: 30%;
+      aspect-ratio: 1 / 1;
+      margin: 0 auto 5%;
+      border: 1px dashed #999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-sizing: border-box;
+      color: #999; 
+      font-size: 0.8em;
+    }
+    .qr-code-area img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+  
+    .card-question {
+      text-align: center;
+      font-size: 1.1em;
+      font-weight: 600;
+      margin-top: 8%;
+    }
+  
+    .bottom-info {
+      position: absolute;
+      left: 0; right: 0; bottom: 5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9em;
+      color: #666;
+    }
+  
+    .topic-center {
+      flex: 1;
+      text-align: center;
+    }
+  
+    .author-right {
+      flex: 1;
+      text-align: right;
+    }
+  
+    .scalable-content {
+      font-size: 1em;
+      line-height: 1.3;
+    }
+  
+    .card-answer {
+      margin-top: 5%;
+      text-align: center;
+      font-size: 1.1em;
+      font-weight: 600;
+      color: #333;
+    }
+  
+    .card-example {
+      text-align: center;
+      margin-top: 4%;
+      font-size: 0.9em;
+      color: #555;
+      font-style: italic;
+    }
+  
+    @media print {
+      .card-front, .card-back {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  
+    /* Optional highlight.js styles */
+    pre.hljs, code.hljs {
+      font-family: Consolas, Monaco, monospace;
+      font-size: 0.8em;
+      display: block;
+      white-space: pre-wrap;
+      background: #f8f8f8;
+      border: 1px solid #999;
+      padding: 0.5em;
+      border-radius: 4px;
+      margin: 0.75em auto;
+      max-width: 100%;
+      box-sizing: border-box;
+      text-align: left;
+    }
+  </style>
+  
+  <% if (side === 'front') { %>
+    <!-- FRONT SIDE -->
+    <div class="card-front">
+  
+      <!-- QR Code -->
+      <div class="qr-code-area">
+        <% if (card && card.qrCodeUrl) { %>
+          <img src="<%= card.qrCodeUrl %>" alt="QR Code" />
+        <% } else { %>
+          No QR Code
+        <% } %>
+      </div>
+  
+      <!-- Question -->
+      <h2 class="card-question">
+        <%= (card && card.question) ? card.question : 'No question provided' %>
+      </h2>
+  
+      <!-- Topic & Author -->
+      <div class="bottom-info">
+        <span class="topic-center">
+          <%= (card && card.topic && card.topic.name) ? card.topic.name : 'No topic' %>
+        </span>
+        <span class="author-right">
+          <%= (card && card.authorName) ? card.authorName : 'No author' %>
+        </span>
+      </div>
+  
+    </div>
+  
+  <% } else { %>
+    <!-- BACK SIDE -->
+    <div class="card-back">
+      <div class="scalable-content">
+  
+        <!-- Answer -->
+        <h3 class="card-answer">
+          <%= (card && card.answer) ? card.answer : 'No answer provided' %>
+        </h3>
+  
+        <!-- Examples / Code snippets / Diagrams -->
+        <div class="card-example">
+          <% 
+            const hasCard = !!card;
+            const atype = hasCard ? card.answerType : null;
+            const examplesData = hasCard ? card.examples : null;
+          %>
+  
+          <% if (!hasCard) { %>
+            No example
+  
+          <% } else if (atype === 'NONE') { %>
+            <span style="color: #bbb;">(No example)</span>
+  
+          <% } else if (atype === 'CODE_SNIPPET') { %>
+            <% 
+              // highlightCode is passed in from the controller
+              const renderHighlighted = (rawCode) => {
+                if (typeof highlightCode === 'function') {
+                  return highlightCode(rawCode);
+                } else {
+                  return rawCode; // fallback plain text
+                }
+              };
+  
+              if (Array.isArray(examplesData)) {
+                examplesData.forEach((ex) => {
+                  const codeContent = ex && ex.code ? ex.code : 'No code snippet';
+                  const snippetHtml = renderHighlighted(codeContent);
+            %>
+                  <pre class="hljs"><code class="hljs"><%- snippetHtml %></code></pre>
+            <%   });
+              } else {
+                const codeContent = (examplesData && examplesData.code) 
+                  ? examplesData.code 
+                  : 'No code snippet';
+                const snippetHtml = renderHighlighted(codeContent);
+            %>
+                <pre class="hljs"><code class="hljs"><%- snippetHtml %></code></pre>
+            <% } %>
+  
+          <% } else if (atype === 'FLOWCHART' || atype === 'DIAGRAM') { %>
+            <% if (typeof examplesData === 'string') { %>
+              <img src="<%= examplesData %>" alt="Flowchart/Diagram" style="max-width:100%;" />
+            <% } else { %>
+              No valid image URL
+            <% } %>
+  
+          <% } else { %>
+            <% if (Array.isArray(examplesData)) { %>
+              <%= examplesData.join(', ') %>
+            <% } else if (examplesData) { %>
+              <%= examplesData %>
+            <% } else { %>
+              No example
+            <% } %>
+          <% } %>
+        </div>
+  
+      </div>
+    </div>
+  <% } %>
+  
