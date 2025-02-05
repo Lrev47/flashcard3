@@ -1,51 +1,17 @@
+<!-- /src/features/flashCards/templates/layouts/layout1.ejs -->
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8"/>
-  <title>All Cards for Topic & Subtopics</title>
+  <title>Flashcard PDF</title>
 
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/a11y-dark.min.css"
-  />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
-
-  <script>
-    function autoScaleElementFont(element, container, step = 0.05, minFont = 0.5, maxIterations = 50) {
-      if (!element || !container) return;
-      let currentFontSizePx = parseFloat(window.getComputedStyle(element).fontSize);
-      let rootFontSize = parseFloat(window.getComputedStyle(document.documentElement).fontSize);
-      let currentFontRem = currentFontSizePx / rootFontSize;
-
-      let iteration = 0;
-      while (
-        container.scrollHeight > container.clientHeight &&
-        currentFontRem > minFont &&
-        iteration < maxIterations
-      ) {
-        currentFontRem -= step;
-        element.style.fontSize = currentFontRem + 'rem';
-        iteration++;
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      hljs.highlightAll(); // highlight code blocks
-
-      const cardBacks = document.querySelectorAll('.card-back');
-      cardBacks.forEach(cardBack => {
-        const scalableContent = cardBack.querySelector('.scalable-content');
-        if (scalableContent) {
-          autoScaleElementFont(scalableContent, cardBack);
-        }
-      });
-    });
-  </script>
+  <!-- We'll embed the highlight.js theme passed in from the controller -->
+  <style><%- themeCSS %></style>
 
   <style>
     @page {
       size: Letter;
-      margin: 0;
+      margin: 0; /* zero margin, if printer supports it */
     }
     html, body {
       margin: 0;
@@ -54,27 +20,39 @@
       height: 11in;
       font-family: Arial, sans-serif;
     }
+
     .page {
       position: relative;
       width: 8.5in;
       height: 11in;
-      box-sizing: border-box;
       page-break-after: always;
+      page-break-inside: avoid;
       overflow: hidden;
     }
+
+    /* 
+      We have 2 columns (3.5in wide each) and 4 rows (~2.2in tall each).
+      Start from top=1.1in, etc. We'll replicate your existing coordinates.
+    */
+
     .card-slot {
       position: absolute;
       width: 3.5in;
       height: 2.25in;
+      page-break-inside: avoid;
+      overflow: hidden;
+      z-index: 1;
     }
-    .card-slot1  { top: 1in;    left: 0.75in; }
-    .card-slot2  { top: 1in;    left: 4.25in; }
-    .card-slot3  { top: 3.25in; left: 0.75in; }
-    .card-slot4  { top: 3.25in; left: 4.25in; }
-    .card-slot5  { top: 5.5in;  left: 0.75in; }
-    .card-slot6  { top: 5.5in;  left: 4.25in; }
-    .card-slot7  { top: 7.75in; left: 0.75in; }
-    .card-slot8  { top: 7.75in; left: 4.25in; }
+    .card-slot1  { top: 1.1in; left: 0.75in; }
+    .card-slot2  { top: 1.1in; left: 4.25in; }
+    .card-slot3  { top: 3.3in; left: 0.75in; }
+    .card-slot4  { top: 3.3in; left: 4.25in; }
+    .card-slot5  { top: 5.5in; left: 0.75in; }
+    .card-slot6  { top: 5.5in; left: 4.25in; }
+    .card-slot7  { top: 7.7in; left: 0.75in; }
+    .card-slot8  { top: 7.7in; left: 4.25in; }
+
+    /* Rotate front side cards -90° */
     .rotated-card {
       width: 2.25in;
       height: 3.5in;
@@ -83,82 +61,180 @@
       left: 50%;
       transform: translate(-50%, -50%) rotate(-90deg);
       transform-origin: center center;
+      page-break-inside: avoid;
     }
-    .rotated-card > .card-front,
-    .rotated-card > .card-back {
-      width: 100%;
-      height: 100%;
+
+    /* For the "back" page: columns swapped, +90°, same row offsets */
+    .page-back .rotated-card {
+      transform: translate(-50%, -50%) rotate(90deg);
     }
+    .page-back .card-slot1  { top: 1.1in; left: 4.25in; }
+    .page-back .card-slot2  { top: 1.1in; left: 0.75in; }
+    .page-back .card-slot3  { top: 3.3in; left: 4.25in; }
+    .page-back .card-slot4  { top: 3.3in; left: 0.75in; }
+    .page-back .card-slot5  { top: 5.5in; left: 4.25in; }
+    .page-back .card-slot6  { top: 5.5in; left: 0.75in; }
+    .page-back .card-slot7  { top: 7.7in; left: 4.25in; }
+    .page-back .card-slot8  { top: 7.7in; left: 0.75in; }
+
+    /* Cutting/perforation lines */
+    .grid-line-h, .grid-line-v {
+      position: absolute;
+      background: #000;
+      z-index: 0;
+    }
+    .grid-line-h {
+      left: 0.75in;
+      right: 0.75in;
+      height: 3px;
+    }
+    .grid-line-h1 { top: 1.1in; }
+    .grid-line-h2 { top: 3.3in; }
+    .grid-line-h3 { top: 5.5in; }
+    .grid-line-h4 { top: 7.7in; }
+    .grid-line-h5 { top: 9.9in; }
+
+    .grid-line-v {
+      top: 1.1in;
+      bottom: calc(11in - 9.9in);
+      width: 3px;
+    }
+    .grid-line-v1 { left: 0.75in; }
+    .grid-line-v2 { left: 4.25in; }
+    .grid-line-v3 { left: 7.75in; }
   </style>
 </head>
 <body>
 
-  <% 
-    console.log("[layout1.ejs] => style=", style, " totalCards=", cards.length);
+<%
+  // We'll chunk "cards" in groups of 8.
+  // For each chunk, we produce one "front" page and one "back" page.
 
-    const cardsPerSheet = 8;
-    const totalCards = cards.length;
-    const totalSheets = Math.ceil(totalCards / cardsPerSheet);
-  %>
+  function getCard(cards, index) {
+    // If index is out of range, return null
+    return (index >= 0 && index < cards.length) ? cards[index] : null;
+  }
 
-  <% for (let s = 0; s < totalSheets; s++) {
-       const startIndex = s * cardsPerSheet;
-       const endIndex = Math.min(startIndex + cardsPerSheet, totalCards);
-       const chunkCards = cards.slice(startIndex, endIndex);
+  for (let i = 0; i < cards.length; i += 8) {
+    // Slice out up to 8 cards
+    const c0 = getCard(cards, i + 0);
+    const c1 = getCard(cards, i + 1);
+    const c2 = getCard(cards, i + 2);
+    const c3 = getCard(cards, i + 3);
+    const c4 = getCard(cards, i + 4);
+    const c5 = getCard(cards, i + 5);
+    const c6 = getCard(cards, i + 6);
+    const c7 = getCard(cards, i + 7);
+%>
 
-       console.log("[layout1.ejs] sheet index=", s, " chunkCards.length=", chunkCards.length);
-  %>
-    <!-- FRONT page for these 8 (or fewer) cards -->
-    <div class="page">
-      <% for (let i = 0; i < 8; i++) {
-           const cardIndex = startIndex + i;
-           if (cardIndex < totalCards) {
-             const cardData = cards[cardIndex];
-             console.log("[layout1.ejs] s=", s, " i=", i, " cardId=", cardData.id);
-      %>
-        <div class="card-slot card-slot<%= i+1 %>">
-          <div class="rotated-card">
-            <!-- Include the design (e.g. design1.ejs) for the FRONT side -->
-            <%- include(
-              `../designs/${style}.ejs`,
-              {
-                card: cardData,
-                side: 'front',
-                parentTopicName: cardData.parentTopicName
-              }
-            ) %>
-          </div>
-        </div>
-      <% } else { %>
-        <div class="card-slot card-slot<%= i+1 %>"></div>
-      <% } } %>
+<!-- ===== FRONT PAGE for this chunk of up to 8 cards ===== -->
+<div class="page">
+  <!-- If you want the cutting lines on every page, repeat them here -->
+  <div class="grid-line-h grid-line-h1"></div>
+  <div class="grid-line-h grid-line-h2"></div>
+  <div class="grid-line-h grid-line-h3"></div>
+  <div class="grid-line-h grid-line-h4"></div>
+  <div class="grid-line-h grid-line-h5"></div>
+  <div class="grid-line-v grid-line-v1"></div>
+  <div class="grid-line-v grid-line-v2"></div>
+  <div class="grid-line-v grid-line-v3"></div>
+
+  <div class="card-slot card-slot1">
+    <div class="rotated-card">
+      <%- include('../designs/' + style + '.ejs', { side: 'front', card: c0, highlightCode }) %>
     </div>
-
-    <!-- BACK page for the same 8 cards -->
-    <div class="page">
-      <% for (let i = 0; i < 8; i++) {
-           const cardIndex = startIndex + i;
-           if (cardIndex < totalCards) {
-             const cardData = cards[cardIndex];
-             console.log("[layout1.ejs BACK] s=", s, " i=", i, " cardId=", cardData.id);
-      %>
-        <div class="card-slot card-slot<%= i+1 %>">
-          <div class="rotated-card">
-            <!-- Include the same design file for the BACK side -->
-            <%- include(
-              `../designs/${style}.ejs`,
-              {
-                card: cardData,
-                side: 'back'
-              }
-            ) %>
-          </div>
-        </div>
-      <% } else { %>
-        <div class="card-slot card-slot<%= i+1 %>"></div>
-      <% } } %>
+  </div>
+  <div class="card-slot card-slot2">
+    <div class="rotated-card">
+      <%- include('../designs/' + style + '.ejs', { side: 'front', card: c1, highlightCode }) %>
     </div>
-  <% } %>
+  </div>
+  <div class="card-slot card-slot3">
+    <div class="rotated-card">
+      <%- include('../designs/' + style + '.ejs', { side: 'front', card: c2, highlightCode }) %>
+    </div>
+  </div>
+  <div class="card-slot card-slot4">
+    <div class="rotated-card">
+      <%- include('../designs/' + style + '.ejs', { side: 'front', card: c3, highlightCode }) %>
+    </div>
+  </div>
+  <div class="card-slot card-slot5">
+    <div class="rotated-card">
+      <%- include('../designs/' + style + '.ejs', { side: 'front', card: c4, highlightCode }) %>
+    </div>
+  </div>
+  <div class="card-slot card-slot6">
+    <div class="rotated-card">
+      <%- include('../designs/' + style + '.ejs', { side: 'front', card: c5, highlightCode }) %>
+    </div>
+  </div>
+  <div class="card-slot card-slot7">
+    <div class="rotated-card">
+      <%- include('../designs/' + style + '.ejs', { side: 'front', card: c6, highlightCode }) %>
+    </div>
+  </div>
+  <div class="card-slot card-slot8">
+    <div class="rotated-card">
+      <%- include('../designs/' + style + '.ejs', { side: 'front', card: c7, highlightCode }) %>
+    </div>
+  </div>
+</div>
+
+<!-- ===== BACK PAGE for this chunk of up to 8 cards ===== -->
+<div class="page page-back">
+  <div class="grid-line-h grid-line-h1"></div>
+  <div class="grid-line-h grid-line-h2"></div>
+  <div class="grid-line-h grid-line-h3"></div>
+  <div class="grid-line-h grid-line-h4"></div>
+  <div class="grid-line-h grid-line-h5"></div>
+  <div class="grid-line-v grid-line-v1"></div>
+  <div class="grid-line-v grid-line-v2"></div>
+  <div class="grid-line-v grid-line-v3"></div>
+
+  <div class="card-slot card-slot1">
+    <div class="rotated-card">
+      <%- include('../designs/' + style + '.ejs', { side: 'back', card: c0, highlightCode }) %>
+    </div>
+  </div>
+  <div class="card-slot card-slot2">
+    <div class="rotated-card">
+      <%- include('../designs/' + style + '.ejs', { side: 'back', card: c1, highlightCode }) %>
+    </div>
+  </div>
+  <div class="card-slot card-slot3">
+    <div class="rotated-card">
+      <%- include('../designs/' + style + '.ejs', { side: 'back', card: c2, highlightCode }) %>
+    </div>
+  </div>
+  <div class="card-slot card-slot4">
+    <div class="rotated-card">
+      <%- include('../designs/' + style + '.ejs', { side: 'back', card: c3, highlightCode }) %>
+    </div>
+  </div>
+  <div class="card-slot card-slot5">
+    <div class="rotated-card">
+      <%- include('../designs/' + style + '.ejs', { side: 'back', card: c4, highlightCode }) %>
+    </div>
+  </div>
+  <div class="card-slot card-slot6">
+    <div class="rotated-card">
+      <%- include('../designs/' + style + '.ejs', { side: 'back', card: c5, highlightCode }) %>
+    </div>
+  </div>
+  <div class="card-slot card-slot7">
+    <div class="rotated-card">
+      <%- include('../designs/' + style + '.ejs', { side: 'back', card: c6, highlightCode }) %>
+    </div>
+  </div>
+  <div class="card-slot card-slot8">
+    <div class="rotated-card">
+      <%- include('../designs/' + style + '.ejs', { side: 'back', card: c7, highlightCode }) %>
+    </div>
+  </div>
+</div>
+
+<% } // end for chunk of 8 %>
 
 </body>
 </html>
