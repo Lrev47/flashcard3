@@ -3,6 +3,52 @@
 import prisma from '../../../config/prismaClient.js';
 import topicService from '../../topics/services/topicService.js';
 
+/**
+ * A reusable "select" object so we're consistent in all queries.
+ * This ensures the fields you want (and any others) are always returned.
+ */
+const cardSelect = {
+  id: true,
+  authorName: true,
+  question: true,
+  qrCodeUrl: true,
+  documentId: true,
+  answer: true,
+  answerType: true,
+  examples: true,
+  resources: true,
+  DetailesGenerated: true,
+  isVerified: true,
+  createdAt: true,
+  updatedAt: true,
+
+  // Include relational data
+  topic: true,
+  document: true,
+
+  // For explanation, select the explanation itself + blocks
+  explanation: {
+    select: {
+      id: true,
+      title: true,
+      createdAt: true,
+      updatedAt: true,
+      blocks: {
+        select: {
+          id: true,
+          explanationId: true,
+          blockType: true,
+          blockTitle: true,
+          content: true,
+          order: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      },
+    },
+  },
+};
+
 const cardService = {
   /* ---------------------------------------------------------------------------
    *  1. BASIC CARD CRUD
@@ -32,22 +78,14 @@ const cardService = {
             },
           },
         },
-        include: {
-          topic: true,
-          document: true,
-          explanation: { include: { blocks: true } },
-        },
+        select: cardSelect,
       });
     }
 
     // Otherwise, create a card with no explanation
     return prisma.card.create({
       data: cardData,
-      include: {
-        topic: true,
-        document: true,
-        explanation: { include: { blocks: true } },
-      },
+      select: cardSelect,
     });
   },
 
@@ -57,11 +95,7 @@ const cardService = {
   async findById(id) {
     return prisma.card.findUnique({
       where: { id },
-      include: {
-        topic: true,
-        document: true,
-        explanation: { include: { blocks: true } },
-      },
+      select: cardSelect,
     });
   },
 
@@ -72,20 +106,18 @@ const cardService = {
     return prisma.card.update({
       where: { id },
       data,
-      include: {
-        topic: true,
-        document: true,
-        explanation: { include: { blocks: true } },
-      },
+      select: cardSelect,
     });
   },
 
   /**
    * Delete a card by its ID.
+   * Returns the deleted card with the fields/relations you've selected.
    */
   async remove(id) {
     return prisma.card.delete({
       where: { id },
+      select: cardSelect,
     });
   },
 
@@ -98,11 +130,7 @@ const cardService = {
    */
   async findAll() {
     return prisma.card.findMany({
-      include: {
-        topic: true,
-        document: true,
-        explanation: { include: { blocks: true } },
-      },
+      select: cardSelect,
     });
   },
 
@@ -112,11 +140,7 @@ const cardService = {
   async findByTopicId(topicId) {
     return prisma.card.findMany({
       where: { topicId },
-      include: {
-        topic: true,
-        document: true,
-        explanation: { include: { blocks: true } },
-      },
+      select: cardSelect,
     });
   },
 
@@ -131,11 +155,7 @@ const cardService = {
 
     const results = await prisma.card.findMany({
       where: { topicId: { in: allTopicIds } },
-      include: {
-        topic: true,
-        document: true,
-        explanation: { include: { blocks: true } },
-      },
+      select: cardSelect,
     });
     console.log(`[findAllByParentTopicIdIncludeSubtopics] returning ${results.length} cards...`);
     return results;
@@ -172,11 +192,7 @@ const cardService = {
   async findByDocumentId(documentId) {
     return prisma.card.findMany({
       where: { documentId },
-      include: {
-        topic: true,
-        document: true,
-        explanation: { include: { blocks: true } },
-      },
+      select: cardSelect,
     });
   },
 
@@ -186,11 +202,7 @@ const cardService = {
   async findMany(whereClause) {
     return prisma.card.findMany({
       where: whereClause,
-      include: {
-        topic: true,
-        document: true,
-        explanation: { include: { blocks: true } },
-      },
+      select: cardSelect,
     });
   },
 
@@ -202,41 +214,29 @@ const cardService = {
       where: {
         OR: [{ isEnhanced: null }, { isEnhanced: false }],
       },
-      include: {
-        topic: true,
-        document: true,
-        explanation: { include: { blocks: true } },
-      },
+      select: cardSelect,
     });
   },
 
   /**
    * Find cards that have no explanation (explanation == null).
-   * (You can still use this if you need it.)
    */
   async findAllWithoutExplanation() {
     return prisma.card.findMany({
       where: { explanation: null },
-      include: {
-        topic: true,
-        document: true,
-      },
+      select: cardSelect,
     });
   },
 
   /**
    * Find all cards where DetailesGenerated == null
-   * (the new condition for generating explanations).
    */
   async findAllWhereDetailesGeneratedIsNull() {
     return prisma.card.findMany({
       where: {
-        DetailesGenerated: null
+        DetailesGenerated: null,
       },
-      include: {
-        topic: true,
-        document: true
-      }
+      select: cardSelect,
     });
   },
 
@@ -248,7 +248,9 @@ const cardService = {
    * Upsert (create or update) the explanation for a card.
    */
   async upsertExplanation(cardId, explanationData) {
-    return prisma.detailedExplanation.upsert({
+    // We upsert the explanation, but also return the entire card object 
+    // (with the fields we want) by re-querying the card afterwards.
+    await prisma.detailedExplanation.upsert({
       where: { cardId },
       create: {
         cardId,
@@ -274,10 +276,12 @@ const cardService = {
           })),
         },
       },
-      include: {
-        blocks: true,
-        card: true,
-      },
+    });
+
+    // Return the updated card with the newly upserted explanation
+    return prisma.card.findUnique({
+      where: { id: cardId },
+      select: cardSelect,
     });
   },
 
@@ -291,12 +295,20 @@ const cardService = {
     });
     if (!existingExp) return null;
 
+    // Delete all blocks
     await prisma.explanationBlock.deleteMany({
       where: { explanationId: existingExp.id },
     });
 
-    return prisma.detailedExplanation.delete({
+    // Delete the explanation
+    await prisma.detailedExplanation.delete({
       where: { cardId },
+    });
+
+    // Return the card now that its explanation is removed
+    return prisma.card.findUnique({
+      where: { id: cardId },
+      select: cardSelect,
     });
   },
 
@@ -310,7 +322,8 @@ const cardService = {
     if (!explanation) {
       throw new Error(`No explanation found for card ${cardId}`);
     }
-    return prisma.explanationBlock.create({
+
+    await prisma.explanationBlock.create({
       data: {
         explanationId: explanation.id,
         blockType: blockData.blockType,
@@ -318,6 +331,12 @@ const cardService = {
         content: blockData.content || '',
         order: blockData.order ?? 0,
       },
+    });
+
+    // Return the updated card with the new block in explanation
+    return prisma.card.findUnique({
+      where: { id: cardId },
+      select: cardSelect,
     });
   },
 };
