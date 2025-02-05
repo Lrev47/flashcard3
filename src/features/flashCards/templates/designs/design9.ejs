@@ -1,0 +1,161 @@
+<!-- /src/features/flashCards/templates/designs/design9.ejs -->
+<style>
+    /*
+      Fractal Neon Dream:
+       - multiple layered neon gradients
+       - intense fractal patterns (simulated via repeating radial gradients)
+       - huge text shadows
+       - wild color combos
+    */
+  
+    .extreme9-front,
+    .extreme9-back {
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      padding: 5%;
+      position: relative;
+      /* We'll layer multiple backgrounds to simulate fractal chaos */
+      background:
+        radial-gradient(circle at 10% 20%, rgba(255,0,255,0.2), transparent 60%),
+        radial-gradient(circle at 80% 80%, rgba(0,255,255,0.2), transparent 60%),
+        linear-gradient(135deg, #ff00ff 0%, #00ffff 50%, #ffea00 100%);
+      font-family: "Impact", "Arial Black", sans-serif;
+      color: #0fff0f; /* bright lime text */
+      text-shadow: 
+        1px 1px 2px #000,
+        0 0 5px #ff0, /* neon glow */
+        0 0 10px #0f0;
+      border: 5px solid #ff0080;
+      /* We'll do a wavy clip-path for even more insanity */
+      clip-path: polygon(0 5%, 5% 0, 95% 0, 100% 5%, 100% 95%, 95% 100%, 5% 100%, 0 95%);
+    }
+  
+    /* front vs back slight variation in background layering */
+    .extreme9-front {
+      background-blend-mode: screen;
+    }
+    .extreme9-back {
+      background-blend-mode: overlay;
+    }
+  
+    /* Decor corner frames using pseudo-elements, for more "extreme" flair */
+    .extreme9-front::before,
+    .extreme9-back::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      border: 10px dotted #ff0080;
+      box-sizing: border-box;
+      /* layering a repeating conic gradient for patterns */
+      background: repeating-conic-gradient(from 45deg, 
+        rgba(0,255,255,0.1) 0% 10%, 
+        transparent 10% 20%) 50%/ 10px 10px;
+      mix-blend-mode: hard-light;
+    }
+  
+    /* QR code, question, etc. with custom classes */
+    .extreme9-qr {
+      width: 40%;
+      aspect-ratio: 1 / 1;
+      margin: 0 auto 5%;
+      border: 3px dashed #00ff00;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-sizing: border-box;
+      font-size: 1em;
+      color: #00ff00;
+      text-shadow:
+        0 0 2px #000,
+        0 0 4px #0f0;
+    }
+  
+    .extreme9-question {
+      text-align: center;
+      font-size: 1.6em;
+      margin-top: 10%;
+      text-transform: uppercase;
+      /* additional text shadows for more glow */
+      text-shadow:
+        2px 2px 2px #000,
+        0 0 5px #ff0,
+        0 0 10px #0ff,
+        0 0 15px #f0f;
+    }
+  
+    .extreme9-bottom {
+      position: absolute;
+      left: 0; right: 0; bottom: 5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 1em;
+      font-weight: bold;
+    }
+    .extreme9-topic {
+      flex: 1;
+      text-align: center;
+    }
+    .extreme9-author {
+      flex: 1;
+      text-align: right;
+    }
+  
+    /* back side content also heavily stylized */
+    .extreme9-content {
+      font-size: 1.2em;
+      line-height: 1.3;
+    }
+    .extreme9-answer {
+      margin-top: 5%;
+      text-align: center;
+      font-size: 1.6em;
+      font-weight: 900;
+      text-transform: uppercase;
+      text-shadow:
+        2px 2px 2px #000,
+        0 0 5px #ff0,
+        0 0 10px #0ff,
+        0 0 15px #f0f;
+    }
+    .extreme9-example {
+      text-align: center;
+      margin-top: 4%;
+      font-size: 1em;
+      color: #ffffff;
+      text-shadow:
+        0 0 2px #f0f,
+        0 0 4px #0ff;
+      font-style: italic;
+    }
+  
+    @media print {
+      .extreme9-front, 
+      .extreme9-back {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+  
+  <% if (side === 'front') { %>
+    <div class="extreme9-front">
+      <div class="extreme9-qr">Neon QR</div>
+      <h2 class="extreme9-question">Fractal Question</h2>
+      <div class="extreme9-bottom">
+        <span class="extreme9-topic">Neon Topic</span>
+        <span class="extreme9-author">By Overboard</span>
+      </div>
+    </div>
+  <% } else { %>
+    <div class="extreme9-back">
+      <div class="extreme9-content">
+        <h3 class="extreme9-answer">Fractal Answer</h3>
+        <p class="extreme9-example">An unbelievably intense example!</p>
+      </div>
+    </div>
+  <% } %>
+  
