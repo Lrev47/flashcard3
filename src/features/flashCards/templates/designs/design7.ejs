@@ -1,0 +1,148 @@
+<!-- /src/features/flashCards/templates/designs/design7.ejs -->
+<style>
+    /* 
+      Art Deco-style design:
+        - deep navy background
+        - geometric gold lines / frames
+        - refined type
+    */
+  
+    .artdeco-front,
+    .artdeco-back {
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      padding: 5%;
+      position: relative;
+      background-color: #0b1e33; /* deep navy */
+      font-family: "Cormorant Garamond", Georgia, serif;
+      color: #ffd700; /* gold text */
+    }
+  
+    /* Distinctive double-border frame in gold, with a geometric corner effect */
+    .artdeco-front {
+      border: 4px double #ffd700;
+      border-radius: 0; /* angular corners for an Art Deco feel */
+    }
+    .artdeco-back {
+      border: 4px double #ffd700;
+    }
+  
+    /* A decorative top bar with angled corners, done via pseudo-element */
+    .artdeco-front::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 10px;
+      background: repeating-linear-gradient(
+        45deg,
+        #ffd700,
+        #ffd700 5px,
+        #0b1e33 5px,
+        #0b1e33 10px
+      );
+      /* A subtle diagonal striped bar at top */
+    }
+    .artdeco-back::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 10px;
+      background: repeating-linear-gradient(
+        45deg,
+        #ffd700,
+        #ffd700 5px,
+        #0b1e33 5px,
+        #0b1e33 10px
+      );
+    }
+  
+    /* Custom classes for QR area, question, etc. */
+    .artdeco-qr {
+      width: 30%;
+      aspect-ratio: 1 / 1;
+      margin: 0 auto 5%;
+      border: 1px dashed #ffd700;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-sizing: border-box;
+      font-size: 0.8em;
+    }
+  
+    .artdeco-question {
+      text-align: center;
+      font-size: 1.3em;
+      margin-top: 8%;
+      font-weight: 600;
+      text-transform: uppercase;
+      text-shadow: 0 0 4px rgba(255, 215, 0, 0.5);
+    }
+  
+    .artdeco-bottom {
+      position: absolute;
+      left: 0; right: 0; bottom: 5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9em;
+      font-style: italic;
+    }
+    .artdeco-topic {
+      text-align: center;
+      flex: 1;
+    }
+    .artdeco-author {
+      text-align: right;
+      flex: 1;
+    }
+  
+    /* Back side text content */
+    .artdeco-content {
+      font-size: 1em;
+      line-height: 1.4;
+    }
+    .artdeco-answer {
+      margin-top: 5%;
+      text-align: center;
+      font-size: 1.2em;
+      font-weight: 700;
+    }
+    .artdeco-example {
+      text-align: center;
+      margin-top: 4%;
+      font-size: 0.9em;
+      color: #ffe;
+      font-style: italic;
+    }
+  
+    @media print {
+      .artdeco-front, .artdeco-back {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+  
+  <% if (side === 'front') { %>
+    <div class="artdeco-front">
+      <div class="artdeco-qr">QR Deco</div>
+      <h2 class="artdeco-question">Art Deco Question</h2>
+      <div class="artdeco-bottom">
+        <span class="artdeco-topic">Deco Topic</span>
+        <span class="artdeco-author">A. Gatsby</span>
+      </div>
+    </div>
+  <% } else { %>
+    <div class="artdeco-back">
+      <div class="artdeco-content">
+        <h3 class="artdeco-answer">Deco Answer</h3>
+        <p class="artdeco-example">“Art Deco example or note.”</p>
+      </div>
+    </div>
+  <% } %>
+  
