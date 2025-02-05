@@ -1,0 +1,122 @@
+<!-- /src/features/flashCards/templates/designs/design4.ejs -->
+<style>
+    /* Classic & Elegant: off-white background, refined serif + subtle accents */
+  
+    .card-front,
+    .card-back {
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      position: relative;
+      padding: 5%;
+      font-family: "Garamond", Georgia, serif; /* a classic print-friendly serif */
+      color: #2c2c2c; 
+      background-color: #faf8f2; /* a soft cream/off-white */
+    }
+  
+    /* Subtle border with a classic color (like a dark navy or burgundy) */
+    .card-front {
+      border: 2px solid #2e2b48; /* deep navy */
+      border-radius: 6px;
+    }
+    .card-back {
+      border: 2px solid #2e2b48;
+      border-radius: 6px;
+    }
+  
+    /* A small flourish (using pseudo-element) to separate the QR code from the question, purely decorative */
+    .card-front::after {
+      content: "— ✦ —";
+      display: block;
+      text-align: center;
+      font-size: 0.9em;
+      margin-top: 1em;
+      color: #2e2b48;
+    }
+  
+    .qr-code-area {
+      width: 30%;
+      aspect-ratio: 1 / 1;
+      margin: 0 auto 1em;
+      border: 1px dashed #aaa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-sizing: border-box;
+      font-size: 0.8em;
+      color: #999;
+    }
+  
+    .card-question {
+      text-align: center;
+      font-size: 1.2em;
+      font-weight: 600;
+      margin-top: 1.5em;
+    }
+  
+    .bottom-info {
+      position: absolute;
+      left: 0; right: 0; bottom: 5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9em;
+      font-style: italic;
+      color: #4c4c4c;
+    }
+    .topic-center {
+      text-align: center;
+      flex: 1;
+    }
+    .author-right {
+      text-align: right;
+      flex: 1;
+    }
+  
+    /* Back side content */
+    .scalable-content {
+      font-size: 1em;
+      line-height: 1.4;
+    }
+    .card-answer {
+      margin-top: 5%;
+      text-align: center;
+      font-weight: 600;
+      font-size: 1.2em;
+      color: #2c2c2c;
+    }
+    .card-example {
+      text-align: center;
+      margin-top: 4%;
+      font-size: 0.9em;
+      color: #555;
+      font-style: italic;
+    }
+  
+    /* Print-specific color adjustment */
+    @media print {
+      .card-front, .card-back {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+  
+  <% if (side === 'front') { %>
+    <div class="card-front">
+      <div class="qr-code-area">QR Code</div>
+      <h2 class="card-question">Classic Question</h2>
+      <div class="bottom-info">
+        <span class="topic-center">Topic: Elegance</span>
+        <span class="author-right">Author: J. Doe</span>
+      </div>
+    </div>
+  <% } else { %>
+    <div class="card-back">
+      <div class="scalable-content">
+        <h3 class="card-answer">A Refined Answer</h3>
+        <p class="card-example">“An elegant example or quotation.”</p>
+      </div>
+    </div>
+  <% } %>
+  
