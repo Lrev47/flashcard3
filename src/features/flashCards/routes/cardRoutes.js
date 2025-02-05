@@ -31,10 +31,12 @@ import {
 } from '../controllers/cardController.js';
 
 
-// NEW imports for PDF preview & generation
+// PDF preview & generation
 import {
    generateFlashcardsPDFHandler,
    previewFlashcardsHTMLHandler,
+   generateFlashcardsTestPDFHandler,
+  previewFlashcardsTestHTMLHandler,
  } from '../controllers/pdfController.js';
 
 const router = Router();
@@ -93,5 +95,8 @@ router.get('/:deckId/pdf', generateFlashcardsPDFHandler);
 
 // e.g. GET /cards/DECK123/preview?layout=layout1&style=design1
 router.get('/:deckId/preview', previewFlashcardsHTMLHandler);
+
+router.get('/:deckId/testPdf', generateFlashcardsTestPDFHandler);
+router.get('/:deckId/testPreview', previewFlashcardsTestHTMLHandler);
 
 export default router;
