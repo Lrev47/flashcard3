@@ -1,4 +1,3 @@
-<!-- /src/features/flashCards/templates/layouts/layout1.ejs -->
 <!DOCTYPE html>
 <html>
 <head>
@@ -30,31 +29,38 @@
       overflow: hidden;
     }
 
-    /* 
-      We have 2 columns (3.5in wide each) and 4 rows (~2.2in tall each).
-      Start from top=1.1in, etc. We'll replicate your existing coordinates.
+    /*
+      2 columns, 3.5in wide each
+      4 rows spaced 2.2in apart => row offsets: 1.1, 3.3, 5.5, 7.7
+      Each .card-slot is 3.5in × 2.2in
     */
-
     .card-slot {
       position: absolute;
       width: 3.5in;
-      height: 2.25in;
+      height: 2.2in;
       page-break-inside: avoid;
       overflow: hidden;
       z-index: 1;
     }
+    /* row 1 */
     .card-slot1  { top: 1.1in; left: 0.75in; }
     .card-slot2  { top: 1.1in; left: 4.25in; }
+    /* row 2 */
     .card-slot3  { top: 3.3in; left: 0.75in; }
     .card-slot4  { top: 3.3in; left: 4.25in; }
+    /* row 3 */
     .card-slot5  { top: 5.5in; left: 0.75in; }
     .card-slot6  { top: 5.5in; left: 4.25in; }
+    /* row 4 */
     .card-slot7  { top: 7.7in; left: 0.75in; }
     .card-slot8  { top: 7.7in; left: 4.25in; }
 
-    /* Rotate front side cards -90° */
+    /*
+      .rotated-card is 2.2in × 3.5in, rotated -90° for front side
+      => final orientation: 3.5in wide, 2.2in tall
+    */
     .rotated-card {
-      width: 2.25in;
+      width: 2.2in;  /* must match .card-slot height */
       height: 3.5in;
       position: absolute;
       top: 50%;
@@ -64,7 +70,7 @@
       page-break-inside: avoid;
     }
 
-    /* For the "back" page: columns swapped, +90°, same row offsets */
+    /* For the back page: columns swapped, +90° rotation, same row offsets */
     .page-back .rotated-card {
       transform: translate(-50%, -50%) rotate(90deg);
     }
@@ -107,16 +113,12 @@
 <body>
 
 <%
-  // We'll chunk "cards" in groups of 8.
-  // For each chunk, we produce one "front" page and one "back" page.
-
-  function getCard(cards, index) {
-    // If index is out of range, return null
-    return (index >= 0 && index < cards.length) ? cards[index] : null;
+  // chunk "cards" in groups of 8 => front & back pages
+  function getCard(cards, idx) {
+    return (idx >= 0 && idx < cards.length) ? cards[idx] : null;
   }
 
   for (let i = 0; i < cards.length; i += 8) {
-    // Slice out up to 8 cards
     const c0 = getCard(cards, i + 0);
     const c1 = getCard(cards, i + 1);
     const c2 = getCard(cards, i + 2);
@@ -127,9 +129,8 @@
     const c7 = getCard(cards, i + 7);
 %>
 
-<!-- ===== FRONT PAGE for this chunk of up to 8 cards ===== -->
+<!-- ===== FRONT PAGE (up to 8 cards) ===== -->
 <div class="page">
-  <!-- If you want the cutting lines on every page, repeat them here -->
   <div class="grid-line-h grid-line-h1"></div>
   <div class="grid-line-h grid-line-h2"></div>
   <div class="grid-line-h grid-line-h3"></div>
@@ -141,47 +142,87 @@
 
   <div class="card-slot card-slot1">
     <div class="rotated-card">
-      <%- include('../designs/' + style + '.ejs', { side: 'front', card: c0, highlightCode }) %>
+      <%- include('../designs/' + style + '.ejs', {
+        side: 'front',
+        card: c0,
+        highlightCode,
+        deckName
+      }) %>
     </div>
   </div>
   <div class="card-slot card-slot2">
     <div class="rotated-card">
-      <%- include('../designs/' + style + '.ejs', { side: 'front', card: c1, highlightCode }) %>
+      <%- include('../designs/' + style + '.ejs', {
+        side: 'front',
+        card: c1,
+        highlightCode,
+        deckName
+      }) %>
     </div>
   </div>
   <div class="card-slot card-slot3">
     <div class="rotated-card">
-      <%- include('../designs/' + style + '.ejs', { side: 'front', card: c2, highlightCode }) %>
+      <%- include('../designs/' + style + '.ejs', {
+        side: 'front',
+        card: c2,
+        highlightCode,
+        deckName
+      }) %>
     </div>
   </div>
   <div class="card-slot card-slot4">
     <div class="rotated-card">
-      <%- include('../designs/' + style + '.ejs', { side: 'front', card: c3, highlightCode }) %>
+      <%- include('../designs/' + style + '.ejs', {
+        side: 'front',
+        card: c3,
+        highlightCode,
+        deckName
+      }) %>
     </div>
   </div>
   <div class="card-slot card-slot5">
     <div class="rotated-card">
-      <%- include('../designs/' + style + '.ejs', { side: 'front', card: c4, highlightCode }) %>
+      <%- include('../designs/' + style + '.ejs', {
+        side: 'front',
+        card: c4,
+        highlightCode,
+        deckName
+      }) %>
     </div>
   </div>
   <div class="card-slot card-slot6">
     <div class="rotated-card">
-      <%- include('../designs/' + style + '.ejs', { side: 'front', card: c5, highlightCode }) %>
+      <%- include('../designs/' + style + '.ejs', {
+        side: 'front',
+        card: c5,
+        highlightCode,
+        deckName
+      }) %>
     </div>
   </div>
   <div class="card-slot card-slot7">
     <div class="rotated-card">
-      <%- include('../designs/' + style + '.ejs', { side: 'front', card: c6, highlightCode }) %>
+      <%- include('../designs/' + style + '.ejs', {
+        side: 'front',
+        card: c6,
+        highlightCode,
+        deckName
+      }) %>
     </div>
   </div>
   <div class="card-slot card-slot8">
     <div class="rotated-card">
-      <%- include('../designs/' + style + '.ejs', { side: 'front', card: c7, highlightCode }) %>
+      <%- include('../designs/' + style + '.ejs', {
+        side: 'front',
+        card: c7,
+        highlightCode,
+        deckName
+      }) %>
     </div>
   </div>
 </div>
 
-<!-- ===== BACK PAGE for this chunk of up to 8 cards ===== -->
+<!-- ===== BACK PAGE ===== -->
 <div class="page page-back">
   <div class="grid-line-h grid-line-h1"></div>
   <div class="grid-line-h grid-line-h2"></div>
@@ -194,42 +235,82 @@
 
   <div class="card-slot card-slot1">
     <div class="rotated-card">
-      <%- include('../designs/' + style + '.ejs', { side: 'back', card: c0, highlightCode }) %>
+      <%- include('../designs/' + style + '.ejs', {
+        side: 'back',
+        card: c0,
+        highlightCode,
+        deckName
+      }) %>
     </div>
   </div>
   <div class="card-slot card-slot2">
     <div class="rotated-card">
-      <%- include('../designs/' + style + '.ejs', { side: 'back', card: c1, highlightCode }) %>
+      <%- include('../designs/' + style + '.ejs', {
+        side: 'back',
+        card: c1,
+        highlightCode,
+        deckName
+      }) %>
     </div>
   </div>
   <div class="card-slot card-slot3">
     <div class="rotated-card">
-      <%- include('../designs/' + style + '.ejs', { side: 'back', card: c2, highlightCode }) %>
+      <%- include('../designs/' + style + '.ejs', {
+        side: 'back',
+        card: c2,
+        highlightCode,
+        deckName
+      }) %>
     </div>
   </div>
   <div class="card-slot card-slot4">
     <div class="rotated-card">
-      <%- include('../designs/' + style + '.ejs', { side: 'back', card: c3, highlightCode }) %>
+      <%- include('../designs/' + style + '.ejs', {
+        side: 'back',
+        card: c3,
+        highlightCode,
+        deckName
+      }) %>
     </div>
   </div>
   <div class="card-slot card-slot5">
     <div class="rotated-card">
-      <%- include('../designs/' + style + '.ejs', { side: 'back', card: c4, highlightCode }) %>
+      <%- include('../designs/' + style + '.ejs', {
+        side: 'back',
+        card: c4,
+        highlightCode,
+        deckName
+      }) %>
     </div>
   </div>
   <div class="card-slot card-slot6">
     <div class="rotated-card">
-      <%- include('../designs/' + style + '.ejs', { side: 'back', card: c5, highlightCode }) %>
+      <%- include('../designs/' + style + '.ejs', {
+        side: 'back',
+        card: c5,
+        highlightCode,
+        deckName
+      }) %>
     </div>
   </div>
   <div class="card-slot card-slot7">
     <div class="rotated-card">
-      <%- include('../designs/' + style + '.ejs', { side: 'back', card: c6, highlightCode }) %>
+      <%- include('../designs/' + style + '.ejs', {
+        side: 'back',
+        card: c6,
+        highlightCode,
+        deckName
+      }) %>
     </div>
   </div>
   <div class="card-slot card-slot8">
     <div class="rotated-card">
-      <%- include('../designs/' + style + '.ejs', { side: 'back', card: c7, highlightCode }) %>
+      <%- include('../designs/' + style + '.ejs', {
+        side: 'back',
+        card: c7,
+        highlightCode,
+        deckName
+      }) %>
     </div>
   </div>
 </div>

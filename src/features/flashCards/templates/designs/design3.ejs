@@ -1,227 +1,299 @@
 <!-- /src/features/flashCards/templates/designs/design3.ejs -->
 <style>
-    /* Bold & Vibrant design: strong background color, high-contrast text */
-  
-    .card-front,
-    .card-back {
-      width: 100%;
-      height: 100%;
-      box-sizing: border-box;
-      padding: 5%;
-      position: relative;
-      font-family: "Impact", "Arial Black", sans-serif; 
-      color: #fff; /* White text for contrast on bold backgrounds */
-      /* Use a strong background color, e.g. a rich teal */
-      background-color: #008080;
+  /* Bold & Vibrant design: strong background color, high-contrast text */
+
+  .card-front,
+  .card-back {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    padding: 5%;
+    position: relative;
+    font-family: "Impact", "Arial Black", sans-serif;
+    color: #fff; /* White text for contrast on bold backgrounds */
+    background-color: #006c6c; /* default background for front/back */
+  }
+
+  .card-front {
+    /* Extra thick border in a complementary color */
+    border: 4px solid #ffcc00;
+    border-radius: 8px;
+  }
+
+  .card-back {
+    /* Slightly darker background for back */
+    background-color: #004c4c;
+    border: 4px solid #ffcc00;
+    border-radius: 8px;
+  }
+
+  .qr-code-area {
+    width: 30%;
+    aspect-ratio: 1 / 1;
+    margin: 0 auto 5%;
+    /* Use a bright accent for the dashed border */
+    border: 2px dashed #ff0080;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    font-size: 0.8em;
+  }
+  .qr-code-area img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+
+  .card-question {
+    text-align: center;
+    font-size: 1.4em;
+    margin-top: 10%;
+    text-transform: uppercase;
+    /* Slight text shadow for extra pop */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+  }
+
+  /*
+    Bottom Info area:
+    - If authorName is null: center deckName
+    - If authorName exists: deckName left, author right
+  */
+  .bottom-info {
+    position: absolute;
+    left: 0; 
+    right: 0; 
+    bottom: 5%;
+    display: flex;
+    align-items: center;
+    font-size: 1em;
+    font-weight: bold;
+    text-transform: uppercase;
+    /* Allow wrapping if text is long */
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    padding: 0 1em; /* for left/right spacing inside the card */
+  }
+  .bottom-info.center-only {
+    justify-content: center;
+  }
+  .bottom-info.with-author {
+    justify-content: space-between;
+  }
+
+  .deck-name,
+  .author-name {
+    max-width: 45%;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+  }
+
+  .scalable-content {
+    font-size: 1.1em;
+    line-height: 1.4;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    position: relative;
+    width: 100%;
+  }
+
+  .card-answer {
+    margin-top: 5%;
+    text-align: center;
+    font-size: 1.4em;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .card-example {
+    text-align: center;
+    margin-top: 4%;
+    font-size: 1em;
+    color: #ffe;
+    /* Slight text shadow as well */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+  }
+
+  @media print {
+    .card-front, .card-back {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
-  
-    .card-front {
-      /* Extra thick border in a complementary color (like yellow) */
-      border: 4px solid #ffcc00;
-      border-radius: 8px;
-    }
-  
-    .card-back {
-      /* Slight variation in background color for the back */
-      background-color: #006666;
-      border: 4px solid #ffcc00;
-      border-radius: 8px;
-    }
-  
-    .qr-code-area {
-      width: 30%;
-      aspect-ratio: 1 / 1;
-      margin: 0 auto 5%;
-      /* Use a bright accent for the dashed border (like pink) */
-      border: 2px dashed #ff0080;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      box-sizing: border-box;
-      font-size: 0.8em;
-    }
-    .qr-code-area img {
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
-    }
-  
-    .card-question {
-      text-align: center;
-      font-size: 1.4em;
-      margin-top: 10%;
-      text-transform: uppercase;
-      /* Slight text shadow for extra pop */
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-    }
-  
-    /* Bold bottom info bar */
-    .bottom-info {
-      position: absolute;
-      left: 0; right: 0; bottom: 5%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 1em;
-      font-weight: bold;
-      text-transform: uppercase;
-    }
-    .topic-center {
-      flex: 1;
-      text-align: center;
-    }
-    .author-right {
-      flex: 1;
-      text-align: right;
-    }
-  
-    /* Back side content: big and bold */
-    .scalable-content {
-      font-size: 1.1em;
-      line-height: 1.4;
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-    }
-    .card-answer {
-      margin-top: 5%;
-      text-align: center;
-      font-size: 1.4em;
-      font-weight: 900;
-      text-transform: uppercase;
-    }
-    .card-example {
-      text-align: center;
-      margin-top: 4%;
-      font-size: 1em;
-      color: #ffe;
-    }
-  
-    @media print {
-      .card-front, .card-back {
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-      }
-    }
-  
-    /* Highlight.js optional styling */
-    pre.hljs, code.hljs {
-      font-family: Consolas, Monaco, monospace;
-      font-size: 0.8em;
-      display: block;
-      white-space: pre-wrap;
-      background: #f8f8f8;
-      border: 1px solid #999;
-      padding: 0.5em;
-      border-radius: 4px;
-      margin: 0.75em auto;
-      max-width: 100%;
-      box-sizing: border-box;
-      text-align: left;
-      color: #333; /* override white text on bright background */
-    }
-  </style>
-  
-  <% if (side === 'front') { %>
-    <!-- FRONT SIDE -->
-    <div class="card-front">
-  
-      <!-- QR Code -->
-      <div class="qr-code-area">
-        <% if (card && card.qrCodeUrl) { %>
-          <img src="<%= card.qrCodeUrl %>" alt="QR Code" />
-        <% } else { %>
-          No QR Code
-        <% } %>
-      </div>
-  
-      <!-- QUESTION -->
-      <h2 class="card-question">
-        <%= card && card.question ? card.question : 'No question provided' %>
-      </h2>
-  
-      <!-- BOTTOM INFO (Topic & Author) -->
-      <div class="bottom-info">
-        <span class="topic-center">
-          <%= (card && card.topic && card.topic.name) ? card.topic.name : 'No topic' %>
-        </span>
-        <span class="author-right">
-          <%= card && card.authorName ? card.authorName : 'No author' %>
-        </span>
-      </div>
-  
+  }
+
+  /*
+    Ensure code wraps lines so it won't bleed horizontally.
+    We remove custom colors/borders so highlight.js theme can style it.
+  */
+  pre.hljs,
+  code.hljs {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  /* Container for code snippet measuring/scaling (down only) */
+  .code-scale-wrapper {
+    position: relative;
+    width: 100%;
+    margin-top: 1em;
+  }
+  .code-scale-inner {
+    display: inline-block;
+    transform-origin: top left;
+  }
+</style>
+
+<% if (side === 'front') { %>
+  <!-- FRONT SIDE -->
+  <div class="card-front">
+
+    <!-- QR Code -->
+    <div class="qr-code-area">
+      <% if (card && card.qrCodeUrl) { %>
+        <img src="<%= card.qrCodeUrl %>" alt="QR Code" />
+      <% } else { %>
+        No QR Code
+      <% } %>
     </div>
-  
-  <% } else { %>
-    <!-- BACK SIDE -->
-    <div class="card-back">
-      <div class="scalable-content">
-  
-        <!-- ANSWER -->
-        <h3 class="card-answer">
-          <%= card && card.answer ? card.answer : 'No answer provided' %>
-        </h3>
-  
-        <!-- EXAMPLE AREA -->
+
+    <!-- QUESTION -->
+    <h2 class="card-question">
+      <%= card && card.question ? card.question : 'No question provided' %>
+    </h2>
+
+    <!-- Bottom Info: deck/author conditional display (matching design1 logic) -->
+    <div
+      class="bottom-info 
+      <%= (card && card.authorName) ? 'with-author' : 'center-only' %>"
+    >
+      <% if (card && card.authorName) { %>
+        <!-- Author exists: show both deckName (left) and authorName (right) -->
+        <span class="deck-name"><%= deckName %></span>
+        <span class="author-name"><%= card.authorName %></span>
+      <% } else { %>
+        <!-- Author is null: center only the deckName -->
+        <span class="deck-name"><%= deckName %></span>
+      <% } %>
+    </div>
+
+  </div>
+
+<% } else { %>
+  <!-- BACK SIDE -->
+  <div class="card-back">
+    <div class="scalable-content">
+
+      <!-- ANSWER -->
+      <h3 class="card-answer">
+        <%= card && card.answer ? card.answer : 'No answer provided' %>
+      </h3>
+
+      <!-- EXAMPLE AREA -->
+      <%
+        const hasCard = !!card;
+        const atype = hasCard ? card.answerType : null;
+        const examplesData = hasCard ? card.examples : null;
+        let shouldShowExample = false;
+
+        if (hasCard && examplesData) {
+          if (atype === 'CODE_SNIPPET' || atype === 'FLOWCHART' || atype === 'DIAGRAM') {
+            shouldShowExample = true;
+          } else if (atype === undefined || atype === null) {
+            // Possibly user has a "regular" example text?
+            // If examplesData is not empty, we show it
+            shouldShowExample = true;
+          }
+        }
+      %>
+
+      <% if (hasCard && atype !== 'NONE' && shouldShowExample) { %>
         <div class="card-example">
-          <% 
-            const hasCard = !!card;
-            const atype = hasCard ? card.answerType : null;
-            const examplesData = hasCard ? card.examples : null;
+          <%
+            // Use highlightCode if available
+            const renderHighlighted = (rawCode) => {
+              if (typeof highlightCode === 'function') {
+                return highlightCode(rawCode);
+              }
+              return rawCode; // fallback
+            };
+
+            if (atype === 'CODE_SNIPPET') {
           %>
-  
-          <% if (!hasCard) { %>
-            No example
-  
-          <% } else if (atype === 'NONE') { %>
-            <span style="color: #bbb;">(No example)</span>
-  
-          <% } else if (atype === 'CODE_SNIPPET') { %>
-            <% 
-              // If highlightCode is available, use it to highlight
-              const renderHighlighted = (rawCode) => {
-                if (typeof highlightCode === 'function') {
-                  return highlightCode(rawCode);
-                } else {
-                  return rawCode; // fallback plain text
-                }
-              };
-  
-              if (Array.isArray(examplesData)) {
-                examplesData.forEach((ex) => {
-                  const codeContent = ex && ex.code ? ex.code : 'No code snippet';
-                  const snippetHtml = renderHighlighted(codeContent);
+            <% if (Array.isArray(examplesData)) { 
+                 examplesData.forEach(ex => {
+                   const codeContent = ex && ex.code ? ex.code : '';
+                   const snippetHtml = renderHighlighted(codeContent);
             %>
+              <div class="code-scale-wrapper">
+                <div class="code-scale-inner">
                   <pre class="hljs"><code class="hljs"><%- snippetHtml %></code></pre>
+                </div>
+              </div>
             <%   });
-              } else {
-                const codeContent = (examplesData && examplesData.code)
-                  ? examplesData.code
-                  : 'No code snippet';
-                const snippetHtml = renderHighlighted(codeContent);
+               } else {
+                 const codeContent = (examplesData && examplesData.code)
+                   ? examplesData.code 
+                   : '';
+                 const snippetHtml = renderHighlighted(codeContent);
             %>
-                <pre class="hljs"><code class="hljs"><%- snippetHtml %></code></pre>
+              <div class="code-scale-wrapper">
+                <div class="code-scale-inner">
+                  <pre class="hljs"><code class="hljs"><%- snippetHtml %></code></pre>
+                </div>
+              </div>
             <% } %>
-  
+
           <% } else if (atype === 'FLOWCHART' || atype === 'DIAGRAM') { %>
             <% if (typeof examplesData === 'string') { %>
               <img src="<%= examplesData %>" alt="Flowchart/Diagram" style="max-width:100%;" />
             <% } else { %>
               No valid image URL
             <% } %>
-  
+
           <% } else { %>
             <!-- Default or "regular" example text -->
             <% if (Array.isArray(examplesData)) { %>
               <%= examplesData.join(', ') %>
-            <% } else if (examplesData) { %>
-              <%= examplesData %>
             <% } else { %>
-              No example
+              <%= examplesData %>
             <% } %>
           <% } %>
         </div>
-        <!-- END card-example -->
-  
-      </div>
-    </div>
-  <% } %>
-  
+      <% } %>
+
+    </div> <!-- END .scalable-content -->
+
+    <!-- Scale-down script for code snippets -->
+    <script>
+      (function() {
+        const containers = document.querySelectorAll('.code-scale-wrapper');
+        containers.forEach(wrapper => {
+          const inner = wrapper.querySelector('.code-scale-inner');
+          if (!inner) return;
+
+          // Reset any scaling
+          inner.style.transform = '';
+          inner.style.transformOrigin = 'top left';
+
+          const wrapRect  = wrapper.getBoundingClientRect();
+          const innerRect = inner.getBoundingClientRect();
+
+          // e.g., 10px bottom margin
+          const BOTTOM_MARGIN = 10;
+          let usableHeight = wrapRect.height - BOTTOM_MARGIN;
+          if (usableHeight < 0) usableHeight = 0;
+
+          let scaleW = wrapRect.width  / innerRect.width;
+          let scaleH = usableHeight    / innerRect.height;
+          let scale  = Math.min(scaleW, scaleH);
+
+          // only scale down if scale < 1
+          if (scale < 1) {
+            // optionally cap the minimum scale
+            scale = Math.max(scale, 0.75);
+            inner.style.transform = 'scale(' + scale + ')';
+          }
+        });
+      })();
+    </script>
+  </div> <!-- END .card-back -->
+<% } %>

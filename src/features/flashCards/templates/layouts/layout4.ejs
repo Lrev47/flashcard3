@@ -3,7 +3,10 @@
 <html>
 <head>
   <meta charset="utf-8"/>
-  <title>Classic & Elegant Flashcards</title>
+  <title>Flashcard PDF (5×7 layout)</title>
+
+  <style><%- themeCSS %></style>
+
   <style>
     @page {
       size: Letter;
@@ -14,7 +17,7 @@
       padding: 0;
       width: 8.5in;
       height: 11in;
-      font-family: "Garamond", Georgia, serif;
+      font-family: Arial, sans-serif;
     }
 
     .page {
@@ -26,28 +29,35 @@
       overflow: hidden;
     }
 
+    /*
+      5×7 card is quite large. We'll do 2 per page:
+      top half + bottom half.
+      We rotate each card so it fits horizontally (7 wide × 5 tall).
+      So the .card-slot is 7in wide × 5in tall,
+      inside is a .rotated-card of 5in × 7in rotated -90°.
+    */
+
     .card-slot {
       position: absolute;
-      width: 3.5in;
-      height: 2.25in;
+      width: 7in;
+      height: 5in;
       page-break-inside: avoid;
       overflow: hidden;
-      z-index: 1;
     }
+    /* We’ll do 0.5in margin top, so first card is at top=0.5in, 
+       second at top=5.8in (some spacing). Or we can do 0.5in gap. 
+    */
+    .card-slot1 { top: 0.5in; left: 0.75in; }
+    .card-slot2 { top: 5.8in; left: 0.75in; }
+    /* 
+      This means horizontally we have 7in for the card + 1.5in leftover 
+      => 0.75in on each side as margin (total 0.75 + 7 + 0.75 = 8.5). 
+    */
 
-    .card-slot1  { top: 1.1in; left: 0.75in; }
-    .card-slot2  { top: 1.1in; left: 4.25in; }
-    .card-slot3  { top: 3.3in; left: 0.75in; }
-    .card-slot4  { top: 3.3in; left: 4.25in; }
-    .card-slot5  { top: 5.5in; left: 0.75in; }
-    .card-slot6  { top: 5.5in; left: 4.25in; }
-    .card-slot7  { top: 7.7in; left: 0.75in; }
-    .card-slot8  { top: 7.7in; left: 4.25in; }
-
-    /* Rotate front side -90° */
+    /* Rotate front side -90° so final is 5"W × 7"H. */
     .rotated-card {
-      width: 2.25in;
-      height: 3.5in;
+      width: 5in;
+      height: 7in;
       position: absolute;
       top: 50%;
       left: 50%;
@@ -56,156 +66,63 @@
       page-break-inside: avoid;
     }
 
-    /* Back side +90°, column swap */
+    /* The back side is +90°, and we swap card-slot positions for correct alignment. */
     .page-back .rotated-card {
       transform: translate(-50%, -50%) rotate(90deg);
     }
-    .page-back .card-slot1  { top: 1.1in; left: 4.25in; }
-    .page-back .card-slot2  { top: 1.1in; left: 0.75in; }
-    .page-back .card-slot3  { top: 3.3in; left: 4.25in; }
-    .page-back .card-slot4  { top: 3.3in; left: 0.75in; }
-    .page-back .card-slot5  { top: 5.5in; left: 4.25in; }
-    .page-back .card-slot6  { top: 5.5in; left: 0.75in; }
-    .page-back .card-slot7  { top: 7.7in; left: 4.25in; }
-    .page-back .card-slot8  { top: 7.7in; left: 0.75in; }
-
-    /* Thin, classic black lines for cutting */
-    .grid-line-h, .grid-line-v {
-      position: absolute;
-      background: #000;
-      z-index: 0;
-    }
-    .grid-line-h {
-      left: 0.75in;
-      right: 0.75in;
-      height: 2px;
-    }
-    .grid-line-h1 { top: 1.1in; }
-    .grid-line-h2 { top: 3.3in; }
-    .grid-line-h3 { top: 5.5in; }
-    .grid-line-h4 { top: 7.7in; }
-    .grid-line-h5 { top: 9.9in; }
-
-    .grid-line-v {
-      top: 1.1in;
-      bottom: 1.1in;
-      width: 2px;
-    }
-    .grid-line-v1 { left: 0.75in; }
-    .grid-line-v2 { left: 4.25in; }
-    .grid-line-v3 { left: 7.75in; }
+    .page-back .card-slot1 { top: 0.5in; left: 0.75in; }
+    .page-back .card-slot2 { top: 5.8in; left: 0.75in; }
+    /* 
+      For 2 cards, we actually might not need to swap them horizontally 
+      because they are physically the same positions. 
+      If you want to ensure correct flipping alignment, 
+      you might mirror them, but typically with 2 big cards it’s simpler 
+      just to keep them same so front/back line up.
+    */
   </style>
 </head>
 <body>
 
-  <!-- FRONT PAGE -->
-  <div class="page page-front">
-    <!-- Grid lines for neat cutting -->
-    <div class="grid-line-h grid-line-h1"></div>
-    <div class="grid-line-h grid-line-h2"></div>
-    <div class="grid-line-h grid-line-h3"></div>
-    <div class="grid-line-h grid-line-h4"></div>
-    <div class="grid-line-h grid-line-h5"></div>
-    <div class="grid-line-v grid-line-v1"></div>
-    <div class="grid-line-v grid-line-v2"></div>
-    <div class="grid-line-v grid-line-v3"></div>
+<%
+  // 2 cards per chunk
+  function getCard(cards, idx) {
+    return (idx >= 0 && idx < cards.length) ? cards[idx] : null;
+  }
 
-    <!-- 8 Card Slots - front side -->
-    <div class="card-slot card-slot1">
-      <div class="rotated-card">
-        <%- include('../designs/design4.ejs', { side: 'front' }) %>
-      </div>
-    </div>
-    <div class="card-slot card-slot2">
-      <div class="rotated-card">
-        <%- include('../designs/design4.ejs', { side: 'front' }) %>
-      </div>
-    </div>
-    <div class="card-slot card-slot3">
-      <div class="rotated-card">
-        <%- include('../designs/design4.ejs', { side: 'front' }) %>
-      </div>
-    </div>
-    <div class="card-slot card-slot4">
-      <div class="rotated-card">
-        <%- include('../designs/design4.ejs', { side: 'front' }) %>
-      </div>
-    </div>
-    <div class="card-slot card-slot5">
-      <div class="rotated-card">
-        <%- include('../designs/design4.ejs', { side: 'front' }) %>
-      </div>
-    </div>
-    <div class="card-slot card-slot6">
-      <div class="rotated-card">
-        <%- include('../designs/design4.ejs', { side: 'front' }) %>
-      </div>
-    </div>
-    <div class="card-slot card-slot7">
-      <div class="rotated-card">
-        <%- include('../designs/design4.ejs', { side: 'front' }) %>
-      </div>
-    </div>
-    <div class="card-slot card-slot8">
-      <div class="rotated-card">
-        <%- include('../designs/design4.ejs', { side: 'front' }) %>
-      </div>
+  for (let i = 0; i < cards.length; i += 2) {
+    const c0 = getCard(cards, i + 0);
+    const c1 = getCard(cards, i + 1);
+%>
+
+<!-- FRONT (2 cards) -->
+<div class="page">
+  <div class="card-slot card-slot1">
+    <div class="rotated-card">
+      <%- include('../designs/' + style + '.ejs', { side: 'front', card: c0, highlightCode }) %>
     </div>
   </div>
-
-  <!-- BACK PAGE -->
-  <div class="page page-back">
-    <div class="grid-line-h grid-line-h1"></div>
-    <div class="grid-line-h grid-line-h2"></div>
-    <div class="grid-line-h grid-line-h3"></div>
-    <div class="grid-line-h grid-line-h4"></div>
-    <div class="grid-line-h grid-line-h5"></div>
-    <div class="grid-line-v grid-line-v1"></div>
-    <div class="grid-line-v grid-line-v2"></div>
-    <div class="grid-line-v grid-line-v3"></div>
-
-    <!-- 8 Card Slots - back side -->
-    <div class="card-slot card-slot1">
-      <div class="rotated-card">
-        <%- include('../designs/design4.ejs', { side: 'back' }) %>
-      </div>
-    </div>
-    <div class="card-slot card-slot2">
-      <div class="rotated-card">
-        <%- include('../designs/design4.ejs', { side: 'back' }) %>
-      </div>
-    </div>
-    <div class="card-slot card-slot3">
-      <div class="rotated-card">
-        <%- include('../designs/design4.ejs', { side: 'back' }) %>
-      </div>
-    </div>
-    <div class="card-slot card-slot4">
-      <div class="rotated-card">
-        <%- include('../designs/design4.ejs', { side: 'back' }) %>
-      </div>
-    </div>
-    <div class="card-slot card-slot5">
-      <div class="rotated-card">
-        <%- include('../designs/design4.ejs', { side: 'back' }) %>
-      </div>
-    </div>
-    <div class="card-slot card-slot6">
-      <div class="rotated-card">
-        <%- include('../designs/design4.ejs', { side: 'back' }) %>
-      </div>
-    </div>
-    <div class="card-slot card-slot7">
-      <div class="rotated-card">
-        <%- include('../designs/design4.ejs', { side: 'back' }) %>
-      </div>
-    </div>
-    <div class="card-slot card-slot8">
-      <div class="rotated-card">
-        <%- include('../designs/design4.ejs', { side: 'back' }) %>
-      </div>
+  <div class="card-slot card-slot2">
+    <div class="rotated-card">
+      <%- include('../designs/' + style + '.ejs', { side: 'front', card: c1, highlightCode }) %>
     </div>
   </div>
+</div>
+
+<!-- BACK (2 cards) -->
+<div class="page page-back">
+  <div class="card-slot card-slot1">
+    <div class="rotated-card">
+      <%- include('../designs/' + style + '.ejs', { side: 'back', card: c0, highlightCode }) %>
+    </div>
+  </div>
+  <div class="card-slot card-slot2">
+    <div class="rotated-card">
+      <%- include('../designs/' + style + '.ejs', { side: 'back', card: c1, highlightCode }) %>
+    </div>
+  </div>
+</div>
+
+<% } %>
 
 </body>
 </html>

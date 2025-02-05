@@ -9,6 +9,8 @@
     font-family: Arial, sans-serif;
     border: none;
     border-radius: 0;
+    /* Prevent content from flowing outside the card container */
+    overflow: hidden;
   }
 
   .qr-code-area {
@@ -27,15 +29,17 @@
     object-fit: contain;
   }
 
+  /* Slightly reduce top margin so it doesn't push too low */
   .card-question {
     text-align: center;
     font-size: 1.2em;
-    margin-top: 10%;
+    margin-top: 5%; /* was 10%, now 5% */
   }
 
   /*
     The bottom-info area:
-    We'll make the topic & author smaller for a more subtle appearance.
+    - If authorName is null: center deckName
+    - If authorName exists: deckName left, author right
   */
   .bottom-info {
     position: absolute;
@@ -43,29 +47,45 @@
     right: 0;
     bottom: 5%;
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    padding: 0 1em; /* space from the sides of the card */
+    font-size: 0.75em;
+    color: #333;
+    /* Let text wrap if it’s too long */
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
   }
+  .bottom-info.center-only {
+    justify-content: center;
+  }
+  .bottom-info.with-author {
+    justify-content: space-between;
+  }
+  /* Each span can occupy up to half the bottom area so they don't overlap */
   .bottom-info span {
-    font-size: 0.75em; /* smaller text for topic & author */
-    color: #333;       /* or any color you want */
+    max-width: 45%;
   }
-  .topic-center {
+  .deck-name {
     text-align: center;
-    flex: 1;
   }
-  .author-right {
-    text-align: right;
-    flex: 1;
+  .author-name {
+    text-align: center;
   }
 
-  /* Freed vertical space: no fixed height or overflow hidden. */
+  /*
+    Freed vertical space: no fixed height or overflow hidden.
+    But we'll add max-height on the back side’s .scalable-content 
+    to prevent content from pushing the bottom info too far.
+  */
   .scalable-content {
     font-size: 0.9em;
     line-height: 1.2;
     position: relative;
     width: 100%;
-    /* No height:100% or overflow:hidden => code can extend downward if smaller */
+    /* Ensure large content doesn't overflow the card */
+    max-height: 80%;
+    overflow-y: auto;
   }
 
   .card-answer {
@@ -74,10 +94,7 @@
     display: block;
   }
 
-  /*
-    If we do display an example, it's here.
-    We'll hide it entirely if there's no example or atype === 'NONE'.
-  */
+  /* Example area styling */
   .card-example {
     text-align: center;
     margin-top: 4%;
@@ -95,7 +112,7 @@
   .code-scale-wrapper {
     position: relative;
     width: 100%;
-    margin-top: 1em; 
+    margin-top: 1em;
   }
   .code-scale-inner {
     display: inline-block;
@@ -118,13 +135,19 @@
       <%= card && card.question ? card.question : 'No question provided' %>
     </h2>
 
-    <div class="bottom-info">
-      <span class="topic-center">
-        <%= (card && card.topic && card.topic.name) ? card.topic.name : '' %>
-      </span>
-      <span class="author-right">
-        <%= card && card.authorName ? card.authorName : '' %>
-      </span>
+    <!-- Bottom Info: deck/author conditional display -->
+    <div 
+      class="bottom-info 
+      <%= (card && card.authorName) ? 'with-author' : 'center-only' %>"
+    >
+      <% if (card && card.authorName) { %>
+        <!-- Author exists: show both deckName (left) and authorName (right) -->
+        <span class="deck-name"><%= deckName %></span>
+        <span class="author-name"><%= card.authorName %></span>
+      <% } else { %>
+        <!-- Author is null: center only the deckName -->
+        <span class="deck-name"><%= deckName %></span>
+      <% } %>
     </div>
   </div>
 
@@ -140,21 +163,16 @@
 
       <!-- EXAMPLE AREA -->
       <%
-        // We'll only render .card-example IF we have a valid "example".
-        // i.e. if there's a snippet, or a flowchart, or a non-empty string, etc.
-        // atype !== 'NONE' and we have some data in `examples`.
         const hasCard = !!card;
         const atype = hasCard ? card.answerType : null;
         const examplesData = hasCard ? card.examples : null;
         let shouldShowExample = false;
 
         if (hasCard && examplesData) {
-          // If the user has CODE_SNIPPET, FLOWCHART, DIAGRAM, or some text 
-          // we can decide to show it
           if (atype === 'CODE_SNIPPET' || atype === 'FLOWCHART' || atype === 'DIAGRAM') {
             shouldShowExample = true;
           } else if (atype === undefined || atype === null) {
-            // Possibly user has a "regular" example text? 
+            // Possibly user has a "regular" example text?
             // If examplesData is not empty, we show it
             shouldShowExample = true;
           }
@@ -164,11 +182,9 @@
       <% if (hasCard && atype !== 'NONE' && shouldShowExample) { %>
         <div class="card-example">
           <% 
-            // Now handle CODE_SNIPPET vs. DIAGRAM vs. "regular"
             if (atype === 'CODE_SNIPPET') { 
           %>
-            <!-- CODE SNIPPETS, highlight them, scale down if too big -->
-            <%
+            <% 
               const renderHighlighted = (rawCode) => {
                 if (typeof highlightCode === 'function') {
                   return highlightCode(rawCode);

@@ -4,9 +4,11 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import hljs from 'highlight.js';
-import ejs from 'ejs';                   // so we can renderFile in the controller
+import ejs from 'ejs';
 import cardService from '../services/cardService.js';
 import { generatePDF } from '../services/pdfGenerator.js';
+
+import prisma from '../../../config/prismaClient.js';
 
 /**
  * Helper: load theme CSS + define highlight function
@@ -29,7 +31,7 @@ function getHighlightSetup() {
 
   function highlightCode(codeString) {
     try {
-      // auto-detect language (you could force 'javascript' or 'bash')
+      // auto-detect language
       const result = hljs.highlightAuto(codeString);
       return result.value;
     } catch (error) {
@@ -58,30 +60,38 @@ export async function generateFlashcardsPDFHandler(req, res) {
       `${layoutName}.ejs`
     );
 
-    // 1) Fetch real card data from DB
+    // 1) Fetch the deck to get deckName
+    const deck = await prisma.deck.findUnique({
+      where: { id: deckId },
+      select: { name: true },
+    });
+    const deckName = deck ? deck.name : 'No deck name found';
+
+    // 2) Fetch real card data from DB
     const cards = await cardService.findCardsByDeckId(deckId);
 
-    // 2) Load highlight setup (theme + function)
+    // 3) Load highlight setup (theme + function)
     const { themeCSS, highlightCode } = getHighlightSetup();
 
-    // 3) Prepare data for EJS
+    // 4) Prepare data for EJS
     const ejsData = {
       style: styleName,
       cards,
       themeCSS,
       highlightCode,
+      deckName, // Pass deck name here
     };
 
-    // 4) Generate PDF (Puppeteer)
+    // 5) Generate PDF
     const pdfBuffer = await generatePDF(templatePath, ejsData, {
       pdfOptions: {
         format: 'Letter',
-        printBackground: true, // important if you want color backgrounds
+        printBackground: true,
       },
       launchOptions: { headless: true },
     });
 
-    // 5) Send PDF
+    // 6) Send PDF
     res.writeHead(200, {
       'Content-Type': 'application/pdf',
       'Content-Disposition': 'attachment; filename="flashcards.pdf"',
@@ -113,18 +123,26 @@ export async function previewFlashcardsHTMLHandler(req, res) {
       `${layoutName}.ejs`
     );
 
-    // 1) Fetch real card data
+    // 1) Fetch the deck to get deckName
+    const deck = await prisma.deck.findUnique({
+      where: { id: deckId },
+      select: { name: true },
+    });
+    const deckName = deck ? deck.name : 'No deck name found';
+
+    // 2) Fetch real card data
     const cards = await cardService.findCardsByDeckId(deckId);
 
-    // 2) highlight.js setup
+    // 3) highlight.js setup
     const { themeCSS, highlightCode } = getHighlightSetup();
 
-    // 3) Render EJS to HTML
+    // 4) Render EJS to HTML
     const htmlString = await ejs.renderFile(templatePath, {
       style: styleName,
       cards,
       themeCSS,
       highlightCode,
+      deckName, // Pass deck name here
     });
 
     res.setHeader('Content-Type', 'text/html');
@@ -138,6 +156,7 @@ export async function previewFlashcardsHTMLHandler(req, res) {
 
 /**
  * GET /cards/:deckId/testPdf?layout=layout1&style=design1
+ * Modified to only take the first 8 cards for a test print.
  */
 export async function generateFlashcardsTestPDFHandler(req, res) {
   try {
@@ -154,21 +173,30 @@ export async function generateFlashcardsTestPDFHandler(req, res) {
       `${layoutName}.ejs`
     );
 
-    // 1) Fetch real card data
-    const cards = await cardService.findCardsByDeckId(deckId);
+    // 1) Fetch deck name
+    const deck = await prisma.deck.findUnique({
+      where: { id: deckId },
+      select: { name: true },
+    });
+    const deckName = deck ? deck.name : 'No deck name found';
 
-    // 2) highlight.js setup
+    // 2) Fetch real card data, but limit to 8 for testing
+    let cards = await cardService.findCardsByDeckId(deckId);
+    cards = cards.slice(0, 8);
+
+    // 3) highlight.js setup
     const { themeCSS, highlightCode } = getHighlightSetup();
 
-    // 3) Prepare data for EJS
+    // 4) Prepare data for EJS
     const ejsData = {
       style: styleName,
       cards,
       themeCSS,
       highlightCode,
+      deckName,
     };
 
-    // 4) Generate PDF
+    // 5) Generate PDF
     const pdfBuffer = await generatePDF(templatePath, ejsData, {
       pdfOptions: {
         format: 'Letter',
@@ -177,7 +205,7 @@ export async function generateFlashcardsTestPDFHandler(req, res) {
       launchOptions: { headless: true },
     });
 
-    // 5) Return test.pdf
+    // 6) Return test.pdf
     res.writeHead(200, {
       'Content-Type': 'application/pdf',
       'Content-Disposition': 'attachment; filename="test.pdf"',
@@ -193,6 +221,7 @@ export async function generateFlashcardsTestPDFHandler(req, res) {
 
 /**
  * GET /cards/:deckId/testPreview?layout=layout1&style=design1
+ * Modified to only preview the first 8 cards for a test.
  */
 export async function previewFlashcardsTestHTMLHandler(req, res) {
   try {
@@ -209,18 +238,27 @@ export async function previewFlashcardsTestHTMLHandler(req, res) {
       `${layoutName}.ejs`
     );
 
-    // 1) Fetch real card data
-    const cards = await cardService.findCardsByDeckId(deckId);
+    // 1) Fetch deck name
+    const deck = await prisma.deck.findUnique({
+      where: { id: deckId },
+      select: { name: true },
+    });
+    const deckName = deck ? deck.name : 'No deck name found';
 
-    // 2) highlight.js setup
+    // 2) Fetch real card data, but only first 8
+    let cards = await cardService.findCardsByDeckId(deckId);
+    cards = cards.slice(0, 8);
+
+    // 3) highlight.js setup
     const { themeCSS, highlightCode } = getHighlightSetup();
 
-    // 3) Render EJS for test preview
+    // 4) Render EJS for test preview
     const htmlString = await ejs.renderFile(templatePath, {
       style: styleName,
       cards,
       themeCSS,
       highlightCode,
+      deckName,
     });
 
     res.setHeader('Content-Type', 'text/html');

@@ -14,7 +14,6 @@ import { createAndExpandDeck } from '../../topics/AiApis/topicGeneration.js';
 // QR code utility import
 import { generateAllMissingQRCodes, generateCardQRCode } from '../utils/qrCodeGeneration.js'; 
 
-
 import pLimit from 'p-limit'; // used inside generateAllMissingQRCodes
 
 /* ===========================================================================
@@ -78,7 +77,6 @@ export async function getAllCardsHandler(req, res) {
 export async function createCardHandler(req, res) {
   try {
     const {
-      authorName,
       question,
       answer,
       difficulty,
@@ -89,10 +87,17 @@ export async function createCardHandler(req, res) {
       documentId,
     } = req.body;
 
-    if (!authorName || !question || !answer) {
+    // We only require question and answer from the body
+    if (!question || !answer) {
       return res.status(400).json({
-        message: 'authorName, question, and answer are required.',
+        message: 'question and answer are required.',
       });
+    }
+
+    // Determine authorName based on logged-in user
+    let authorName = null;
+    if (req.user && req.user.name) {
+      authorName = req.user.name;
     }
 
     // If you pass an `explanationData` param, you could do so here as second arg
@@ -459,10 +464,10 @@ export async function masterGenerateHandler(req, res) {
     console.log('[masterGenerate] Starting master generation for topic:', topicName);
 
     let userId = null;
-    let userName = 'public';
+    let userName = null; // default to null if no user
     if (req.user) {
       userId = req.user.userId;
-      userName = req.user.name || 'public';
+      userName = req.user.name || null;
     }
 
     // 1) Create deck & parent topic

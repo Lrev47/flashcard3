@@ -1,161 +1,341 @@
 <!-- /src/features/flashCards/templates/designs/design9.ejs -->
 <style>
-    /*
-      Fractal Neon Dream:
-       - multiple layered neon gradients
-       - intense fractal patterns (simulated via repeating radial gradients)
-       - huge text shadows
-       - wild color combos
-    */
-  
-    .extreme9-front,
+  /*
+    Fractal Neon Dream:
+     - multiple layered neon gradients
+     - intense fractal patterns (simulated via repeating radial gradients)
+     - huge text shadows
+     - wild color combos
+  */
+
+  .extreme9-front,
+  .extreme9-back {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    padding: 5%;
+    position: relative;
+    /* We'll layer multiple backgrounds to simulate fractal chaos */
+    background:
+      radial-gradient(circle at 10% 20%, rgba(255,0,255,0.2), transparent 60%),
+      radial-gradient(circle at 80% 80%, rgba(0,255,255,0.2), transparent 60%),
+      linear-gradient(135deg, #ff00ff 0%, #00ffff 50%, #ffea00 100%);
+    font-family: "Impact", "Arial Black", sans-serif;
+    color: #0fff0f; /* bright lime text */
+    text-shadow: 
+      1px 1px 2px #000,
+      0 0 5px #ff0, /* neon glow */
+      0 0 10px #0f0;
+    border: 5px solid #ff0080;
+    /* A wavy clip-path for more "extreme" flair */
+    clip-path: polygon(0 5%, 5% 0, 95% 0, 100% 5%, 100% 95%, 95% 100%, 5% 100%, 0 95%);
+  }
+
+  /* front vs back slight variation in background layering */
+  .extreme9-front {
+    background-blend-mode: screen;
+  }
+  .extreme9-back {
+    background-blend-mode: overlay;
+  }
+
+  /* Decor corner frames using pseudo-elements */
+  .extreme9-front::before,
+  .extreme9-back::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    border: 10px dotted #ff0080;
+    box-sizing: border-box;
+    /* repeating conic gradient for patterns */
+    background: repeating-conic-gradient(
+      from 45deg, 
+      rgba(0,255,255,0.1) 0% 10%, 
+      transparent 10% 20%
+    ) 50%/ 10px 10px;
+    mix-blend-mode: hard-light;
+  }
+
+  /* QR code, question, etc. */
+  .extreme9-qr {
+    width: 40%;
+    aspect-ratio: 1 / 1;
+    margin: 0 auto 5%;
+    border: 3px dashed #00ff00;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    font-size: 1em;
+    color: #00ff00;
+    text-shadow:
+      0 0 2px #000,
+      0 0 4px #0f0;
+  }
+  .extreme9-qr img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+
+  .extreme9-question {
+    text-align: center;
+    font-size: 1.6em;
+    margin-top: 10%;
+    text-transform: uppercase;
+    /* additional text shadows for more glow */
+    text-shadow:
+      2px 2px 2px #000,
+      0 0 5px #ff0,
+      0 0 10px #0ff,
+      0 0 15px #f0f;
+  }
+
+  /*
+    Bottom Info area:
+    - If authorName is null: center deckName
+    - If authorName exists: deckName left, author right
+  */
+  .extreme9-bottom {
+    position: absolute;
+    left: 0; 
+    right: 0; 
+    bottom: 5%;
+    display: flex;
+    align-items: center;
+    font-size: 1em;
+    font-weight: bold;
+    padding: 0 1em; /* space inside the card sides */
+    /* Allow wrapping for long text */
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  .extreme9-bottom.center-only {
+    justify-content: center;
+  }
+  .extreme9-bottom.with-author {
+    justify-content: space-between;
+  }
+
+  .extreme9-topic,
+  .extreme9-author {
+    max-width: 45%;
+  }
+
+  /* back side content also heavily stylized */
+  .extreme9-content {
+    font-size: 1.2em;
+    line-height: 1.3;
+    position: relative;
+    width: 100%;
+  }
+  .extreme9-answer {
+    margin-top: 5%;
+    text-align: center;
+    font-size: 1.6em;
+    font-weight: 900;
+    text-transform: uppercase;
+    text-shadow:
+      2px 2px 2px #000,
+      0 0 5px #ff0,
+      0 0 10px #0ff,
+      0 0 15px #f0f;
+  }
+  .extreme9-example {
+    text-align: center;
+    margin-top: 4%;
+    font-size: 1em;
+    color: #ffffff;
+    text-shadow:
+      0 0 2px #f0f,
+      0 0 4px #0ff;
+    font-style: italic;
+  }
+
+  @media print {
+    .extreme9-front, 
     .extreme9-back {
-      width: 100%;
-      height: 100%;
-      box-sizing: border-box;
-      padding: 5%;
-      position: relative;
-      /* We'll layer multiple backgrounds to simulate fractal chaos */
-      background:
-        radial-gradient(circle at 10% 20%, rgba(255,0,255,0.2), transparent 60%),
-        radial-gradient(circle at 80% 80%, rgba(0,255,255,0.2), transparent 60%),
-        linear-gradient(135deg, #ff00ff 0%, #00ffff 50%, #ffea00 100%);
-      font-family: "Impact", "Arial Black", sans-serif;
-      color: #0fff0f; /* bright lime text */
-      text-shadow: 
-        1px 1px 2px #000,
-        0 0 5px #ff0, /* neon glow */
-        0 0 10px #0f0;
-      border: 5px solid #ff0080;
-      /* We'll do a wavy clip-path for even more insanity */
-      clip-path: polygon(0 5%, 5% 0, 95% 0, 100% 5%, 100% 95%, 95% 100%, 5% 100%, 0 95%);
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
-  
-    /* front vs back slight variation in background layering */
-    .extreme9-front {
-      background-blend-mode: screen;
-    }
-    .extreme9-back {
-      background-blend-mode: overlay;
-    }
-  
-    /* Decor corner frames using pseudo-elements, for more "extreme" flair */
-    .extreme9-front::before,
-    .extreme9-back::before {
-      content: "";
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      pointer-events: none;
-      border: 10px dotted #ff0080;
-      box-sizing: border-box;
-      /* layering a repeating conic gradient for patterns */
-      background: repeating-conic-gradient(from 45deg, 
-        rgba(0,255,255,0.1) 0% 10%, 
-        transparent 10% 20%) 50%/ 10px 10px;
-      mix-blend-mode: hard-light;
-    }
-  
-    /* QR code, question, etc. with custom classes */
-    .extreme9-qr {
-      width: 40%;
-      aspect-ratio: 1 / 1;
-      margin: 0 auto 5%;
-      border: 3px dashed #00ff00;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      box-sizing: border-box;
-      font-size: 1em;
-      color: #00ff00;
-      text-shadow:
-        0 0 2px #000,
-        0 0 4px #0f0;
-    }
-  
-    .extreme9-question {
-      text-align: center;
-      font-size: 1.6em;
-      margin-top: 10%;
-      text-transform: uppercase;
-      /* additional text shadows for more glow */
-      text-shadow:
-        2px 2px 2px #000,
-        0 0 5px #ff0,
-        0 0 10px #0ff,
-        0 0 15px #f0f;
-    }
-  
-    .extreme9-bottom {
-      position: absolute;
-      left: 0; right: 0; bottom: 5%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 1em;
-      font-weight: bold;
-    }
-    .extreme9-topic {
-      flex: 1;
-      text-align: center;
-    }
-    .extreme9-author {
-      flex: 1;
-      text-align: right;
-    }
-  
-    /* back side content also heavily stylized */
-    .extreme9-content {
-      font-size: 1.2em;
-      line-height: 1.3;
-    }
-    .extreme9-answer {
-      margin-top: 5%;
-      text-align: center;
-      font-size: 1.6em;
-      font-weight: 900;
-      text-transform: uppercase;
-      text-shadow:
-        2px 2px 2px #000,
-        0 0 5px #ff0,
-        0 0 10px #0ff,
-        0 0 15px #f0f;
-    }
-    .extreme9-example {
-      text-align: center;
-      margin-top: 4%;
-      font-size: 1em;
-      color: #ffffff;
-      text-shadow:
-        0 0 2px #f0f,
-        0 0 4px #0ff;
-      font-style: italic;
-    }
-  
-    @media print {
-      .extreme9-front, 
-      .extreme9-back {
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-      }
-    }
-  </style>
-  
-  <% if (side === 'front') { %>
-    <div class="extreme9-front">
-      <div class="extreme9-qr">Neon QR</div>
-      <h2 class="extreme9-question">Fractal Question</h2>
-      <div class="extreme9-bottom">
-        <span class="extreme9-topic">Neon Topic</span>
-        <span class="extreme9-author">By Overboard</span>
-      </div>
+  }
+
+  /*
+    Minimal code styling so highlight.js can color it
+  */
+  pre.hljs,
+  code.hljs {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  /* Container for code snippet measuring/scaling (down only) */
+  .code-scale-wrapper {
+    position: relative;
+    width: 100%;
+    margin-top: 1em;
+  }
+  .code-scale-inner {
+    display: inline-block;
+    transform-origin: top left;
+  }
+</style>
+
+<% if (side === 'front') { %>
+  <!-- FRONT SIDE -->
+  <div class="extreme9-front">
+
+    <!-- QR Code -->
+    <div class="extreme9-qr">
+      <% if (card && card.qrCodeUrl) { %>
+        <img src="<%= card.qrCodeUrl %>" alt="QR Code" />
+      <% } else { %>
+        No QR Code
+      <% } %>
     </div>
-  <% } else { %>
-    <div class="extreme9-back">
-      <div class="extreme9-content">
-        <h3 class="extreme9-answer">Fractal Answer</h3>
-        <p class="extreme9-example">An unbelievably intense example!</p>
-      </div>
+
+    <!-- QUESTION -->
+    <h2 class="extreme9-question">
+      <%= (card && card.question) ? card.question : 'No question provided' %>
+    </h2>
+
+    <!-- Bottom Info: deck/author conditional display -->
+    <div 
+      class="extreme9-bottom 
+      <%= (card && card.authorName) ? 'with-author' : 'center-only' %>"
+    >
+      <% if (card && card.authorName) { %>
+        <!-- Author exists: show both deckName (left) and authorName (right) -->
+        <span class="extreme9-topic"><%= deckName %></span>
+        <span class="extreme9-author"><%= card.authorName %></span>
+      <% } else { %>
+        <!-- No author: center deckName -->
+        <span class="extreme9-topic"><%= deckName %></span>
+      <% } %>
     </div>
-  <% } %>
-  
+
+  </div>
+
+<% } else { %>
+  <!-- BACK SIDE -->
+  <div class="extreme9-back">
+    <div class="extreme9-content">
+
+      <!-- ANSWER -->
+      <h3 class="extreme9-answer">
+        <%= (card && card.answer) ? card.answer : 'No answer provided' %>
+      </h3>
+
+      <!-- EXAMPLE AREA -->
+      <%
+        const hasCard = !!card;
+        const atype = hasCard ? card.answerType : null;
+        const examplesData = hasCard ? card.examples : null;
+        let shouldShowExample = false;
+
+        if (hasCard && examplesData) {
+          if (atype === 'CODE_SNIPPET' || atype === 'FLOWCHART' || atype === 'DIAGRAM') {
+            shouldShowExample = true;
+          } else if (atype === undefined || atype === null) {
+            // Possibly user has a "regular" example text?
+            // If examplesData is not empty, we show it
+            shouldShowExample = true;
+          }
+        }
+      %>
+
+      <% if (hasCard && atype !== 'NONE' && shouldShowExample) { %>
+        <div class="extreme9-example">
+          <% 
+            // highlightCode function (if provided) for syntax highlighting
+            const renderHighlighted = (rawCode) => {
+              if (typeof highlightCode === 'function') {
+                return highlightCode(rawCode);
+              }
+              return rawCode; // fallback
+            };
+
+            if (atype === 'CODE_SNIPPET') {
+          %>
+            <% if (Array.isArray(examplesData)) {
+                 examplesData.forEach(ex => {
+                   const codeContent = ex && ex.code ? ex.code : '';
+                   const snippetHtml = renderHighlighted(codeContent);
+            %>
+              <div class="code-scale-wrapper">
+                <div class="code-scale-inner">
+                  <pre class="hljs"><code class="hljs"><%- snippetHtml %></code></pre>
+                </div>
+              </div>
+            <%   });
+               } else {
+                 const codeContent = (examplesData && examplesData.code)
+                   ? examplesData.code
+                   : '';
+                 const snippetHtml = renderHighlighted(codeContent);
+            %>
+              <div class="code-scale-wrapper">
+                <div class="code-scale-inner">
+                  <pre class="hljs"><code class="hljs"><%- snippetHtml %></code></pre>
+                </div>
+              </div>
+            <% } %>
+
+          <% } else if (atype === 'FLOWCHART' || atype === 'DIAGRAM') { %>
+            <% if (typeof examplesData === 'string') { %>
+              <img src="<%= examplesData %>" alt="Flowchart/Diagram" style="max-width:100%;" />
+            <% } else { %>
+              No valid image URL
+            <% } %>
+
+          <% } else { %>
+            <!-- Default or "regular" example text -->
+            <% if (Array.isArray(examplesData)) { %>
+              <%= examplesData.join(', ') %>
+            <% } else { %>
+              <%= examplesData %>
+            <% } %>
+          <% } %>
+        </div>
+      <% } %>
+
+    </div> <!-- END .extreme9-content -->
+
+    <!-- SCALE-DOWN SCRIPT for code snippets -->
+    <script>
+      (function() {
+        const containers = document.querySelectorAll('.code-scale-wrapper');
+        containers.forEach(wrapper => {
+          const inner = wrapper.querySelector('.code-scale-inner');
+          if (!inner) return;
+
+          // Reset any scaling
+          inner.style.transform = '';
+          inner.style.transformOrigin = 'top left';
+
+          const wrapRect  = wrapper.getBoundingClientRect();
+          const innerRect = inner.getBoundingClientRect();
+
+          // e.g., 10px bottom margin
+          const BOTTOM_MARGIN = 10;
+          let usableHeight = wrapRect.height - BOTTOM_MARGIN;
+          if (usableHeight < 0) usableHeight = 0;
+
+          let scaleW = wrapRect.width  / innerRect.width;
+          let scaleH = usableHeight    / innerRect.height;
+          let scale  = Math.min(scaleW, scaleH);
+
+          // only scale down if scale < 1
+          if (scale < 1) {
+            // optionally cap the minimum scale
+            scale = Math.max(scale, 0.75);
+            inner.style.transform = 'scale(' + scale + ')';
+          }
+        });
+      })();
+    </script>
+  </div> <!-- END .extreme9-back -->
+<% } %>

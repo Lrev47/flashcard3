@@ -1,153 +1,328 @@
 <!-- /src/features/flashCards/templates/designs/design8.ejs -->
 <style>
-    /*
-      Botanical Flourish:
-        - pastel green background
-        - subtle leaf motif (pure CSS shapes or pseudo-elements)
-        - elegant script heading
-    */
-  
-    .botanical-front,
-    .botanical-back {
-      width: 100%;
-      height: 100%;
-      box-sizing: border-box;
-      position: relative;
-      padding: 5%;
-      background-color: #eaf4ec; /* pale pastel green */
-      font-family: "Didot", "Georgia", serif;
-      color: #2f4f4f; /* dark slate for text */
+  /*
+    Botanical Flourish:
+      - pastel green background
+      - subtle leaf motif (pure CSS shapes or pseudo-elements)
+      - elegant script heading
+  */
+
+  .botanical-front,
+  .botanical-back {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    position: relative;
+    padding: 5%;
+    background-color: #eaf4ec; /* pale pastel green */
+    font-family: "Didot", "Georgia", serif;
+    color: #2f4f4f; /* dark slate for text */
+  }
+
+  /* Light border with a delicate dashed style */
+  .botanical-front {
+    border: 2px dashed #7c9f94; 
+    border-radius: 6px;
+  }
+  .botanical-back {
+    border: 2px dashed #7c9f94;
+    border-radius: 6px;
+  }
+
+  /*
+    Leaf flourish in bottom-right (front) and top-left (back), using inline SVG.
+  */
+  .botanical-front::after,
+  .botanical-back::after {
+    content: "";
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    background: url("data:image/svg+xml,%3Csvg width='50' height='50' viewBox='0 0 24 24' fill='%237c9f94' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M16.88 3.549C19.78 6.459 21.203 10.5 20.148 14.15c-1.064 3.791-4.162 6.375-8.611 6.375-4.156 0-6.256-2.967-6.589-3.441l2.074-1.54c0.004 0.005 1.573 2.126 4.515 2.126 3.004 0 5.061-1.68 5.795-4.267 0.78-2.776-0.307-5.957-2.328-7.979l1.875-1.875h0.002z'/%3E%3C/svg%3E") 
+                no-repeat center / contain;
+    opacity: 0.6;
+  }
+  .botanical-front::after {
+    bottom: 0;
+    right: 0;
+  }
+  .botanical-back::after {
+    top: 0;
+    left: 0;
+    opacity: 0.5;
+    transform: rotate(180deg);
+  }
+
+  /* Custom classes for QR, question, etc. */
+  .botanical-qr {
+    width: 30%;
+    aspect-ratio: 1 / 1;
+    margin: 0 auto 5%;
+    border: 1px dotted #7c9f94;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    font-size: 0.8em;
+    color: #7c9f94;
+  }
+  .botanical-qr img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+
+  .botanical-question {
+    text-align: center;
+    font-size: 1.4em;
+    margin-top: 8%;
+    font-family: "Allura", "Brush Script MT", cursive; /* script heading */
+    color: #2f4f4f;
+  }
+
+  /*
+    Bottom info area:
+    - If authorName is null: center deckName
+    - If authorName exists: deckName left, author right
+  */
+  .botanical-bottom {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 5%;
+    display: flex;
+    align-items: center;
+    font-size: 0.9em;
+    padding: 0 1em; /* spacing inside the card sides */
+    /* Allow wrapping if text is long */
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  .botanical-bottom.center-only {
+    justify-content: center;
+  }
+  .botanical-bottom.with-author {
+    justify-content: space-between;
+  }
+
+  .botanical-topic {
+    text-align: center;
+    flex: 1;
+    font-style: italic;
+    color: #3f5f5f;
+    max-width: 45%;
+  }
+  .botanical-author {
+    text-align: right;
+    flex: 1;
+    font-style: italic;
+    color: #3f5f5f;
+    max-width: 45%;
+  }
+
+  /* Back side content */
+  .botanical-content {
+    font-size: 1em;
+    line-height: 1.4;
+    color: #2f4f4f;
+    position: relative;
+    width: 100%;
+  }
+  .botanical-answer {
+    margin-top: 5%;
+    text-align: center;
+    font-size: 1.3em;
+    font-family: "Allura", "Brush Script MT", cursive;
+    color: #2f4f4f;
+  }
+  .botanical-example {
+    text-align: center;
+    margin-top: 4%;
+    font-size: 0.9em;
+    color: #4c7f6f;
+    font-style: italic;
+  }
+
+  @media print {
+    .botanical-front, .botanical-back {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
-  
-    /* Light border with a delicate dashed style */
-    .botanical-front {
-      border: 2px dashed #7c9f94; 
-      border-radius: 6px;
-    }
-    .botanical-back {
-      border: 2px dashed #7c9f94;
-      border-radius: 6px;
-    }
-  
-    /*
-      Leaf flourish in the bottom-right corner (front side).
-      Using a URL-encoded inline SVG so that # signs and quotes won't break the CSS.
-    */
-    .botanical-front::after {
-      content: "";
-      position: absolute;
-      bottom: 0; 
-      right: 0;
-      width: 50px; 
-      height: 50px;
-      background: url("data:image/svg+xml,%3Csvg width='50' height='50' viewBox='0 0 24 24' fill='%237c9f94' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M16.88 3.549C19.78 6.459 21.203 10.5 20.148 14.15c-1.064 3.791-4.162 6.375-8.611 6.375-4.156 0-6.256-2.967-6.589-3.441l2.074-1.54c0.004 0.005 1.573 2.126 4.515 2.126 3.004 0 5.061-1.68 5.795-4.267 0.78-2.776-0.307-5.957-2.328-7.979l1.875-1.875h0.002z'/%3E%3C/svg%3E") 
-                  no-repeat center / contain;
-      opacity: 0.6;
-    }
-  
-    /* Leaf flourish in top-left corner (back side), rotated 180° for variation */
-    .botanical-back::after {
-      content: "";
-      position: absolute;
-      top: 0; 
-      left: 0;
-      width: 50px; 
-      height: 50px;
-      background: url("data:image/svg+xml,%3Csvg width='50' height='50' viewBox='0 0 24 24' fill='%237c9f94' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M16.88 3.549C19.78 6.459 21.203 10.5 20.148 14.15c-1.064 3.791-4.162 6.375-8.611 6.375-4.156 0-6.256-2.967-6.589-3.441l2.074-1.54c0.004 0.005 1.573 2.126 4.515 2.126 3.004 0 5.061-1.68 5.795-4.267 0.78-2.776-0.307-5.957-2.328-7.979l1.875-1.875h0.002z'/%3E%3C/svg%3E") 
-                  no-repeat center / contain;
-      opacity: 0.5;
-      transform: rotate(180deg);
-    }
-  
-    /* Custom classes for QR, question, etc. */
-    .botanical-qr {
-      width: 30%;
-      aspect-ratio: 1 / 1;
-      margin: 0 auto 5%;
-      border: 1px dotted #7c9f94;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      box-sizing: border-box;
-      font-size: 0.8em;
-      color: #7c9f94;
-    }
-  
-    .botanical-question {
-      text-align: center;
-      font-size: 1.4em;
-      margin-top: 8%;
-      font-family: "Allura", "Brush Script MT", cursive; /* script heading */
-      color: #2f4f4f;
-    }
-  
-    .botanical-bottom {
-      position: absolute;
-      left: 0; 
-      right: 0; 
-      bottom: 5%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.9em;
-    }
-    .botanical-topic {
-      text-align: center;
-      flex: 1;
-      font-style: italic;
-      color: #3f5f5f;
-    }
-    .botanical-author {
-      text-align: right;
-      flex: 1;
-      font-style: italic;
-      color: #3f5f5f;
-    }
-  
-    /* Back side content */
-    .botanical-content {
-      font-size: 1em;
-      line-height: 1.4;
-      color: #2f4f4f;
-    }
-    .botanical-answer {
-      margin-top: 5%;
-      text-align: center;
-      font-size: 1.3em;
-      font-family: "Allura", "Brush Script MT", cursive;
-      color: #2f4f4f;
-    }
-    .botanical-example {
-      text-align: center;
-      margin-top: 4%;
-      font-size: 0.9em;
-      color: #4c7f6f;
-      font-style: italic;
-    }
-  
-    @media print {
-      .botanical-front, .botanical-back {
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-      }
-    }
-  </style>
-  
-  <% if (side === 'front') { %>
-    <div class="botanical-front">
-      <div class="botanical-qr">Leaf QR</div>
-      <h2 class="botanical-question">Botanical Q</h2>
-      <div class="botanical-bottom">
-        <span class="botanical-topic">Gardening Topic</span>
-        <span class="botanical-author">By Green Thumb</span>
-      </div>
+  }
+
+  /*
+    Minimal styling for code blocks so highlight.js can apply its theme
+  */
+  pre.hljs,
+  code.hljs {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  /* Container for code snippet measuring/scaling (down only) */
+  .code-scale-wrapper {
+    position: relative;
+    width: 100%;
+    margin-top: 1em;
+  }
+  .code-scale-inner {
+    display: inline-block;
+    transform-origin: top left;
+  }
+</style>
+
+<% if (side === 'front') { %>
+  <!-- FRONT SIDE -->
+  <div class="botanical-front">
+
+    <!-- QR Code -->
+    <div class="botanical-qr">
+      <% if (card && card.qrCodeUrl) { %>
+        <img src="<%= card.qrCodeUrl %>" alt="QR Code" />
+      <% } else { %>
+        No QR Code
+      <% } %>
     </div>
-  <% } else { %>
-    <div class="botanical-back">
-      <div class="botanical-content">
-        <h3 class="botanical-answer">Nature's Answer</h3>
-        <p class="botanical-example">"A fresh, organic example."</p>
-      </div>
+
+    <!-- QUESTION -->
+    <h2 class="botanical-question">
+      <%= (card && card.question) ? card.question : 'No question provided' %>
+    </h2>
+
+    <!-- Bottom Info: deck/author conditional display -->
+    <div 
+      class="botanical-bottom 
+      <%= (card && card.authorName) ? 'with-author' : 'center-only' %>"
+    >
+      <% if (card && card.authorName) { %>
+        <!-- Author exists: show deckName (left) + authorName (right) -->
+        <span class="botanical-topic"><%= deckName %></span>
+        <span class="botanical-author"><%= card.authorName %></span>
+      <% } else { %>
+        <!-- No author: center deckName -->
+        <span class="botanical-topic"><%= deckName %></span>
+      <% } %>
     </div>
-  <% } %>
-  
+
+  </div>
+
+<% } else { %>
+  <!-- BACK SIDE -->
+  <div class="botanical-back">
+    <div class="botanical-content">
+
+      <!-- ANSWER -->
+      <h3 class="botanical-answer">
+        <%= (card && card.answer) ? card.answer : 'No answer provided' %>
+      </h3>
+
+      <!-- EXAMPLE AREA -->
+      <%
+        const hasCard = !!card;
+        const atype = hasCard ? card.answerType : null;
+        const examplesData = hasCard ? card.examples : null;
+        let shouldShowExample = false;
+
+        if (hasCard && examplesData) {
+          if (atype === 'CODE_SNIPPET' || atype === 'FLOWCHART' || atype === 'DIAGRAM') {
+            shouldShowExample = true;
+          } else if (atype === undefined || atype === null) {
+            // Possibly a "regular" example text
+            // If examplesData is not empty, we show it
+            shouldShowExample = true;
+          }
+        }
+      %>
+
+      <% if (hasCard && atype !== 'NONE' && shouldShowExample) { %>
+        <div class="botanical-example">
+          <%
+            // Use highlightCode if available
+            const renderHighlighted = (rawCode) => {
+              if (typeof highlightCode === 'function') {
+                return highlightCode(rawCode);
+              }
+              return rawCode; // fallback
+            };
+
+            if (atype === 'CODE_SNIPPET') {
+          %>
+            <% if (Array.isArray(examplesData)) {
+                 examplesData.forEach(ex => {
+                   const codeContent = ex && ex.code ? ex.code : '';
+                   const snippetHtml = renderHighlighted(codeContent);
+            %>
+              <div class="code-scale-wrapper">
+                <div class="code-scale-inner">
+                  <pre class="hljs"><code class="hljs"><%- snippetHtml %></code></pre>
+                </div>
+              </div>
+            <%   });
+               } else {
+                 const codeContent = (examplesData && examplesData.code)
+                   ? examplesData.code
+                   : '';
+                 const snippetHtml = renderHighlighted(codeContent);
+            %>
+              <div class="code-scale-wrapper">
+                <div class="code-scale-inner">
+                  <pre class="hljs"><code class="hljs"><%- snippetHtml %></code></pre>
+                </div>
+              </div>
+            <% } %>
+
+          <% } else if (atype === 'FLOWCHART' || atype === 'DIAGRAM') { %>
+            <% if (typeof examplesData === 'string') { %>
+              <img src="<%= examplesData %>" alt="Flowchart/Diagram" style="max-width:100%;" />
+            <% } else { %>
+              No valid image URL
+            <% } %>
+
+          <% } else { %>
+            <!-- Default or "regular" example text -->
+            <% if (Array.isArray(examplesData)) { %>
+              <%= examplesData.join(', ') %>
+            <% } else { %>
+              <%= examplesData %>
+            <% } %>
+          <% } %>
+        </div>
+      <% } %>
+
+    </div> <!-- END .botanical-content -->
+
+    <!-- Scale-down script for code snippets -->
+    <script>
+      (function() {
+        const containers = document.querySelectorAll('.code-scale-wrapper');
+        containers.forEach(wrapper => {
+          const inner = wrapper.querySelector('.code-scale-inner');
+          if (!inner) return;
+
+          // Reset any scaling
+          inner.style.transform = '';
+          inner.style.transformOrigin = 'top left';
+
+          const wrapRect  = wrapper.getBoundingClientRect();
+          const innerRect = inner.getBoundingClientRect();
+
+          // e.g., 10px bottom margin
+          const BOTTOM_MARGIN = 10;
+          let usableHeight = wrapRect.height - BOTTOM_MARGIN;
+          if (usableHeight < 0) usableHeight = 0;
+
+          let scaleW = wrapRect.width  / innerRect.width;
+          let scaleH = usableHeight    / innerRect.height;
+          let scale  = Math.min(scaleW, scaleH);
+
+          // only scale down if scale < 1
+          if (scale < 1) {
+            scale = Math.max(scale, 0.75);
+            inner.style.transform = 'scale(' + scale + ')';
+          }
+        });
+      })();
+    </script>
+  </div> <!-- END .botanical-back -->
+<% } %>
