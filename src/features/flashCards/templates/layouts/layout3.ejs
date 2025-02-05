@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Bold & Vibrant Flashcards</title>
+  <style>
+    @page {
+      size: Letter;
+      margin: 0;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 8.5in;
+      height: 11in;
+      font-family: "Impact", "Arial Black", sans-serif;
+    }
+
+    .page {
+      position: relative;
+      width: 8.5in;
+      height: 11in;
+      page-break-after: always;
+      page-break-inside: avoid;
+      overflow: hidden;
+    }
+
+    .card-slot {
+      position: absolute;
+      width: 3.5in;
+      height: 2.25in;
+      page-break-inside: avoid;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    /* Typical absolute placements for 8 cards */
+    .card-slot1  { top: 1.1in; left: 0.75in; }
+    .card-slot2  { top: 1.1in; left: 4.25in; }
+    .card-slot3  { top: 3.3in; left: 0.75in; }
+    .card-slot4  { top: 3.3in; left: 4.25in; }
+    .card-slot5  { top: 5.5in; left: 0.75in; }
+    .card-slot6  { top: 5.5in; left: 4.25in; }
+    .card-slot7  { top: 7.7in; left: 0.75in; }
+    .card-slot8  { top: 7.7in; left: 4.25in; }
+
+    .rotated-card {
+      width: 2.25in;
+      height: 3.5in;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-90deg);
+      transform-origin: center center;
+      page-break-inside: avoid;
+    }
+
+    .page-back .rotated-card {
+      transform: translate(-50%, -50%) rotate(90deg);
+    }
+    .page-back .card-slot1  { top: 1.1in; left: 4.25in; }
+    .page-back .card-slot2  { top: 1.1in; left: 0.75in; }
+    .page-back .card-slot3  { top: 3.3in; left: 4.25in; }
+    .page-back .card-slot4  { top: 3.3in; left: 0.75in; }
+    .page-back .card-slot5  { top: 5.5in; left: 4.25in; }
+    .page-back .card-slot6  { top: 5.5in; left: 0.75in; }
+    .page-back .card-slot7  { top: 7.7in; left: 4.25in; }
+    .page-back .card-slot8  { top: 7.7in; left: 0.75in; }
+
+    /* Thick black lines for bold look */
+    .grid-line-h, .grid-line-v {
+      position: absolute;
+      background: #000;
+      z-index: 0;
+    }
+    .grid-line-h {
+      left: 0.75in;
+      right: 0.75in;
+      height: 4px; /* Thicker */
+    }
+    .grid-line-h1 { top: 1.1in; }
+    .grid-line-h2 { top: 3.3in; }
+    .grid-line-h3 { top: 5.5in; }
+    .grid-line-h4 { top: 7.7in; }
+    .grid-line-h5 { top: 9.9in; }
+    .grid-line-v {
+      top: 1.1in;
+      bottom: 1.1in;
+      width: 4px; /* Thicker */
+    }
+    .grid-line-v1 { left: 0.75in; }
+    .grid-line-v2 { left: 4.25in; }
+    .grid-line-v3 { left: 7.75in; }
+  </style>
+</head>
+<body>
+
+<%
+  // Helper to chunk the cards array into groups of 8
+  function chunkArray(arr, chunkSize) {
+    const chunks = [];
+    for (let i = 0; i < arr.length; i += chunkSize) {
+      chunks.push(arr.slice(i, i + chunkSize));
+    }
+    return chunks;
+  }
+
+  const cardChunks = chunkArray(cards, 8); // "cards" comes from controller
+%>
+
+<% cardChunks.forEach((chunk) => { %>
+  <!-- FRONT PAGE for this chunk -->
+  <div class="page page-front">
+    <!-- Bold black grid lines -->
+    <div class="grid-line-h grid-line-h1"></div>
+    <div class="grid-line-h grid-line-h2"></div>
+    <div class="grid-line-h grid-line-h3"></div>
+    <div class="grid-line-h grid-line-h4"></div>
+    <div class="grid-line-h grid-line-h5"></div>
+    <div class="grid-line-v grid-line-v1"></div>
+    <div class="grid-line-v grid-line-v2"></div>
+    <div class="grid-line-v grid-line-v3"></div>
+
+    <% chunk.forEach((card, index) => {
+       const slotNum = index + 1; // 1..8
+    %>
+      <div class="card-slot card-slot<%= slotNum %>">
+        <div class="rotated-card">
+          <%- include('../designs/design3.ejs', { side: 'front', card, highlightCode }) %>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+
+  <!-- BACK PAGE for this chunk -->
+  <div class="page page-back">
+    <div class="grid-line-h grid-line-h1"></div>
+    <div class="grid-line-h grid-line-h2"></div>
+    <div class="grid-line-h grid-line-h3"></div>
+    <div class="grid-line-h grid-line-h4"></div>
+    <div class="grid-line-h grid-line-h5"></div>
+    <div class="grid-line-v grid-line-v1"></div>
+    <div class="grid-line-v grid-line-v2"></div>
+    <div class="grid-line-v grid-line-v3"></div>
+
+    <% chunk.forEach((card, index) => {
+       const slotNum = index + 1; // 1..8
+    %>
+      <div class="card-slot card-slot<%= slotNum %>">
+        <div class="rotated-card">
+          <%- include('../designs/design3.ejs', { side: 'back', card, highlightCode }) %>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+<% }) %>
+
+</body>
+</html>
+ 
