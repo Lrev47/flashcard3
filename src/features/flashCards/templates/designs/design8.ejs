@@ -1,0 +1,153 @@
+<!-- /src/features/flashCards/templates/designs/design8.ejs -->
+<style>
+    /*
+      Botanical Flourish:
+        - pastel green background
+        - subtle leaf motif (pure CSS shapes or pseudo-elements)
+        - elegant script heading
+    */
+  
+    .botanical-front,
+    .botanical-back {
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      position: relative;
+      padding: 5%;
+      background-color: #eaf4ec; /* pale pastel green */
+      font-family: "Didot", "Georgia", serif;
+      color: #2f4f4f; /* dark slate for text */
+    }
+  
+    /* Light border with a delicate dashed style */
+    .botanical-front {
+      border: 2px dashed #7c9f94; 
+      border-radius: 6px;
+    }
+    .botanical-back {
+      border: 2px dashed #7c9f94;
+      border-radius: 6px;
+    }
+  
+    /*
+      Leaf flourish in the bottom-right corner (front side).
+      Using a URL-encoded inline SVG so that # signs and quotes won't break the CSS.
+    */
+    .botanical-front::after {
+      content: "";
+      position: absolute;
+      bottom: 0; 
+      right: 0;
+      width: 50px; 
+      height: 50px;
+      background: url("data:image/svg+xml,%3Csvg width='50' height='50' viewBox='0 0 24 24' fill='%237c9f94' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M16.88 3.549C19.78 6.459 21.203 10.5 20.148 14.15c-1.064 3.791-4.162 6.375-8.611 6.375-4.156 0-6.256-2.967-6.589-3.441l2.074-1.54c0.004 0.005 1.573 2.126 4.515 2.126 3.004 0 5.061-1.68 5.795-4.267 0.78-2.776-0.307-5.957-2.328-7.979l1.875-1.875h0.002z'/%3E%3C/svg%3E") 
+                  no-repeat center / contain;
+      opacity: 0.6;
+    }
+  
+    /* Leaf flourish in top-left corner (back side), rotated 180° for variation */
+    .botanical-back::after {
+      content: "";
+      position: absolute;
+      top: 0; 
+      left: 0;
+      width: 50px; 
+      height: 50px;
+      background: url("data:image/svg+xml,%3Csvg width='50' height='50' viewBox='0 0 24 24' fill='%237c9f94' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M16.88 3.549C19.78 6.459 21.203 10.5 20.148 14.15c-1.064 3.791-4.162 6.375-8.611 6.375-4.156 0-6.256-2.967-6.589-3.441l2.074-1.54c0.004 0.005 1.573 2.126 4.515 2.126 3.004 0 5.061-1.68 5.795-4.267 0.78-2.776-0.307-5.957-2.328-7.979l1.875-1.875h0.002z'/%3E%3C/svg%3E") 
+                  no-repeat center / contain;
+      opacity: 0.5;
+      transform: rotate(180deg);
+    }
+  
+    /* Custom classes for QR, question, etc. */
+    .botanical-qr {
+      width: 30%;
+      aspect-ratio: 1 / 1;
+      margin: 0 auto 5%;
+      border: 1px dotted #7c9f94;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-sizing: border-box;
+      font-size: 0.8em;
+      color: #7c9f94;
+    }
+  
+    .botanical-question {
+      text-align: center;
+      font-size: 1.4em;
+      margin-top: 8%;
+      font-family: "Allura", "Brush Script MT", cursive; /* script heading */
+      color: #2f4f4f;
+    }
+  
+    .botanical-bottom {
+      position: absolute;
+      left: 0; 
+      right: 0; 
+      bottom: 5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9em;
+    }
+    .botanical-topic {
+      text-align: center;
+      flex: 1;
+      font-style: italic;
+      color: #3f5f5f;
+    }
+    .botanical-author {
+      text-align: right;
+      flex: 1;
+      font-style: italic;
+      color: #3f5f5f;
+    }
+  
+    /* Back side content */
+    .botanical-content {
+      font-size: 1em;
+      line-height: 1.4;
+      color: #2f4f4f;
+    }
+    .botanical-answer {
+      margin-top: 5%;
+      text-align: center;
+      font-size: 1.3em;
+      font-family: "Allura", "Brush Script MT", cursive;
+      color: #2f4f4f;
+    }
+    .botanical-example {
+      text-align: center;
+      margin-top: 4%;
+      font-size: 0.9em;
+      color: #4c7f6f;
+      font-style: italic;
+    }
+  
+    @media print {
+      .botanical-front, .botanical-back {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+  
+  <% if (side === 'front') { %>
+    <div class="botanical-front">
+      <div class="botanical-qr">Leaf QR</div>
+      <h2 class="botanical-question">Botanical Q</h2>
+      <div class="botanical-bottom">
+        <span class="botanical-topic">Gardening Topic</span>
+        <span class="botanical-author">By Green Thumb</span>
+      </div>
+    </div>
+  <% } else { %>
+    <div class="botanical-back">
+      <div class="botanical-content">
+        <h3 class="botanical-answer">Nature's Answer</h3>
+        <p class="botanical-example">"A fresh, organic example."</p>
+      </div>
+    </div>
+  <% } %>
+  
