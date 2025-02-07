@@ -1,0 +1,115 @@
+<!-- src/features/flashCards/newtemp/designs/horizontal/design1/front.ejs -->
+<style>
+    .card-front {
+      /* Make it occupy the full width/height, assuming a container with set dimensions */
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      padding: 2%;
+      position: relative;
+      font-family: Arial, sans-serif;
+      border: none;
+      border-radius: 0;
+      overflow: hidden; /* Prevent content from flowing outside */
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+  
+    /* Top container for QR and Question side by side */
+    .top-row {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 2%;
+    }
+  
+    .qr-code-area {
+      width: 40%;
+      aspect-ratio: 1 / 1;
+      border: 1px dashed #888;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-sizing: border-box;
+    }
+  
+    .qr-code-area img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+  
+    .card-question {
+      width: 55%; /* The question container takes up the remaining space */
+      font-size: 1.2em;
+      margin-left: 3%;
+      /* Align the text to the left or right as you prefer */
+      text-align: left;
+    }
+  
+    /* Bottom info (deck id on the left, author on the right) */
+    .bottom-info {
+      font-size: 0.75em;
+      color: #333;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 2%;
+      padding: 0 2%;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+  
+    .bottom-info.center-only {
+      justify-content: center;
+    }
+  
+    /* For the text blocks within bottom info */
+    .deck-name {
+      text-align: left;
+      max-width: 45%;
+    }
+  
+    .author-name {
+      text-align: right;
+      max-width: 45%;
+    }
+  </style>
+  
+  <div class="card-front">
+    <!-- Top row: QR on left, question on right -->
+    <div class="top-row">
+      <div class="qr-code-area">
+        <% if (card && card.qrCodeUrl) { %>
+          <img src="<%= card.qrCodeUrl %>" alt="QR Code" />
+        <% } else { %>
+          No QR Code
+        <% } %>
+      </div>
+  
+      <h2 class="card-question">
+        <%= card && card.question ? card.question : 'No question provided' %>
+      </h2>
+    </div>
+  
+    <!-- Bottom info area: deck name on left, author name on right if present -->
+    <div
+      class="bottom-info 
+      <%= (card && card.authorName) ? 'with-author' : 'center-only' %>"
+    >
+      <% if (card && card.authorName) { %>
+        <span class="deck-name"><%= deckName %></span>
+        <span class="author-name"><%= card.authorName %></span>
+      <% } else { %>
+        <span class="deck-name"><%= deckName %></span>
+      <% } %>
+    </div>
+  </div>
+  

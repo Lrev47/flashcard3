@@ -1,0 +1,271 @@
+<!-- src/features/flashCards/newtemp/designs/landscape/design1/back.ejs -->
+<style>
+    .card-back {
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      padding: 5%;
+      position: relative;
+      font-family: Arial, sans-serif;
+      border: none;
+      border-radius: 0;
+      overflow: hidden; /* no scroll or overflow */
+  
+      /* rotate the entire back side 180 degrees for printing orientation (landscape) */
+      transform: rotate(180deg);
+      transform-origin: center center;
+    }
+  
+    .scalable-content {
+      font-size: 0.9em;
+      line-height: 1.2;
+      position: relative;
+      width: 100%;
+      max-height: 100%;
+      overflow: hidden; /* no scroll */
+    }
+  
+    /*
+      For the landscape layout:
+  
+      1) If there's both an answer and example, we use .horizontal-layout
+         so the answer is on the left, example on the right.
+  
+      2) If there's no example, we center the answer in .centered-answer.
+  
+      We still wrap them with the "answer-scale-wrapper" and "code-scale-wrapper"
+      so the scaling script can shrink them if needed.
+    */
+  
+    /* Horizontal layout for (answer | example) side-by-side */
+    .horizontal-layout {
+      display: flex;
+      justify-content: space-evenly;
+      align-items: flex-start;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+    }
+  
+    /* Left/right sections */
+    .answer-area, .example-area {
+      width: 45%;
+      display: flex;
+      flex-direction: column;
+      align-items: center; /* keep contents centered horizontally within each section */
+    }
+  
+    /* If there's no example, we just center the answer container in the full space */
+    .centered-answer {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+    }
+  
+    /* We wrap the entire answer in .answer-scale-wrapper for potential scaling. */
+    .answer-scale-wrapper {
+      position: relative;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+  
+    .answer-scale-inner {
+      display: inline-block;
+      transform-origin: top center;
+      width: auto;
+    }
+  
+    .card-answer {
+      margin-top: 5%;
+      text-align: center;
+    }
+  
+    /* Example area styling (text/code/images) */
+    .card-example {
+      margin-top: 4%;
+      color: #555;
+      font-size: 0.9em;
+      text-align: center;
+  
+      /* Make sure the example is flex-centered as well */
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+  
+    /* Code snippets: ensure wrapping. */
+    pre.hljs, code.hljs {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+  
+    /*
+      code-scale-wrapper for code snippets or diagrams
+      so they can be scaled if too large.
+    */
+    .code-scale-wrapper {
+      position: relative;
+      width: 100%;
+      margin-top: 1em;
+      display: flex;           
+      justify-content: center; 
+      align-items: flex-start;
+    }
+  
+    .code-scale-inner {
+      display: inline-block;
+      transform-origin: top center;
+    }
+  </style>
+  
+  <!-- BACK SIDE (Landscape Layout) -->
+  <div class="card-back">
+    <div class="scalable-content">
+  
+      <!-- Server-side JS to decide how to render answer & example -->
+      <%
+        const hasCard = !!card;
+        const atype = hasCard ? card.answerType : null;
+        const examplesData = hasCard ? card.examples : null;
+        const answer = card && card.answer ? card.answer : 'No answer provided';
+  
+        let shouldShowExample = false;
+        if (hasCard && examplesData) {
+          if (
+            atype === 'CODE_SNIPPET' ||
+            atype === 'FLOWCHART' ||
+            atype === 'DIAGRAM'
+          ) {
+            shouldShowExample = true;
+          } else if (atype === undefined || atype === null) {
+            // Possibly user has a "regular" example text
+            shouldShowExample = true;
+          }
+        }
+      %>
+  
+      <!-- If there's an example, show side-by-side. Otherwise, just center the answer. -->
+      <% if (shouldShowExample && atype !== 'NONE') { %>
+        <div class="horizontal-layout">
+          <!-- ANSWER AREA (Left) -->
+          <div class="answer-area">
+            <div class="answer-scale-wrapper">
+              <div class="answer-scale-inner">
+                <h3 class="card-answer"><%= answer %></h3>
+              </div>
+            </div>
+          </div>
+  
+          <!-- EXAMPLE AREA (Right) -->
+          <div class="example-area">
+            <div class="card-example">
+              <% if (atype === 'CODE_SNIPPET') {
+                   const renderHighlighted = (rawCode) => {
+                     if (typeof highlightCode === 'function') {
+                       return highlightCode(rawCode);
+                     }
+                     return rawCode; // fallback
+                   };
+              %>
+                <% if (Array.isArray(examplesData)) {
+                     examplesData.forEach(ex => {
+                       const codeContent = ex && ex.code ? ex.code : '';
+                       const snippetHtml = renderHighlighted(codeContent);
+                %>
+                  <div class="code-scale-wrapper">
+                    <div class="code-scale-inner">
+                      <pre class="hljs"><code class="hljs"><%- snippetHtml %></code></pre>
+                    </div>
+                  </div>
+                <%   });
+                   } else {
+                     const codeContent = (examplesData && examplesData.code)
+                       ? examplesData.code
+                       : '';
+                     const snippetHtml = renderHighlighted(codeContent);
+                %>
+                  <div class="code-scale-wrapper">
+                    <div class="code-scale-inner">
+                      <pre class="hljs"><code class="hljs"><%- snippetHtml %></code></pre>
+                    </div>
+                  </div>
+                <% } %>
+  
+              <% } else if (atype === 'FLOWCHART' || atype === 'DIAGRAM') { %>
+                <% if (typeof examplesData === 'string') { %>
+                  <img src="<%= examplesData %>" alt="Flowchart/Diagram" style="max-width:100%;" />
+                <% } %>
+              <% } else { %>
+                <!-- Default or "regular" example text -->
+                <% if (Array.isArray(examplesData)) { %>
+                  <%= examplesData.join(', ') %>
+                <% } else { %>
+                  <%= examplesData %>
+                <% } %>
+              <% } %>
+            </div> <!-- .card-example -->
+          </div> <!-- .example-area -->
+        </div> <!-- .horizontal-layout -->
+  
+      <% } else { %>
+        <!-- No example, so we just center the answer -->
+        <div class="centered-answer">
+          <div class="answer-scale-wrapper">
+            <div class="answer-scale-inner">
+              <h3 class="card-answer"><%= answer %></h3>
+            </div>
+          </div>
+        </div>
+      <% } %>
+  
+    </div><!-- END .scalable-content -->
+  
+    <!-- SCALE-DOWN SCRIPT -->
+    <script>
+      (function() {
+        /*
+          We want to scale down:
+           1) The answer itself (.answer-scale-wrapper)
+           2) Any code snippets or examples (.code-scale-wrapper)
+          if the content overflows the parent container.
+        */
+        const scaleWrappers = document.querySelectorAll(
+          '.answer-scale-wrapper, .code-scale-wrapper'
+        );
+  
+        scaleWrappers.forEach(wrapper => {
+          const inner = wrapper.querySelector('.answer-scale-inner, .code-scale-inner');
+          if (!inner) return;
+  
+          // Reset transforms
+          inner.style.transform = '';
+  
+          const wrapRect  = wrapper.getBoundingClientRect();
+          const innerRect = inner.getBoundingClientRect();
+  
+          // Some bottom margin to avoid text clipping
+          const BOTTOM_MARGIN = 10;
+          let usableHeight = wrapRect.height - BOTTOM_MARGIN;
+          if (usableHeight < 0) usableHeight = 0;
+  
+          // Calculate scale
+          let scaleW = wrapRect.width  / innerRect.width;
+          let scaleH = usableHeight    / innerRect.height;
+          let scale  = Math.min(scaleW, scaleH);
+  
+          // Only shrink if content is bigger than container
+          if (scale < 1) {
+            // Optionally enforce a minimum scale, e.g. 75%
+            scale = Math.max(scale, 0.75);
+            inner.style.transform = 'scale(' + scale + ')';
+          }
+        });
+      })();
+    </script>
+  </div>
+  
