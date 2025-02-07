@@ -1,0 +1,115 @@
+<!-- src/features/flashCards/newtemp/designs/landscape/design2/front.ejs -->
+<style>
+    /* Minimalist design: mostly white, subtle accents, clean typography */
+    .card-front {
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      padding: 5%;
+      position: relative;
+      background-color: #ffffff;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      color: #333;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      /* Use flex to stack top content (QR + question) and bottom info */
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+  
+    .top-row {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+  
+    .qr-code-area {
+      width: 35%;
+      aspect-ratio: 1 / 1;
+      border: 1px dashed #999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-sizing: border-box;
+      color: #999;
+      font-size: 0.8em;
+      /* Remove auto-centering margin from vertical design */
+      margin: 0;
+    }
+    .qr-code-area img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+  
+    .card-question {
+      /* Take remaining space on the top row */
+      width: 60%;
+      text-align: right;
+      font-size: 1.1em;
+      font-weight: 600;
+      margin: 0; /* remove top margin so it's aligned with QR */
+      padding-left: 1em; /* some spacing from the QR code */
+    }
+  
+    .bottom-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75em; /* smaller font for bottom info */
+      color: #666;
+      padding: 0 1em;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+  
+    .deck-name {
+      text-align: left;
+      max-width: 45%;
+    }
+    .author-name {
+      text-align: right;
+      max-width: 45%;
+    }
+  
+    @media print {
+      .card-front {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+  
+  <!-- FRONT SIDE -->
+  <div class="card-front">
+    <div class="top-row">
+      <!-- QR Code on Top Left -->
+      <div class="qr-code-area">
+        <% if (card && card.qrCodeUrl) { %>
+          <img src="<%= card.qrCodeUrl %>" alt="QR Code" />
+        <% } else { %>
+          No QR Code
+        <% } %>
+      </div>
+  
+      <!-- Question on Top Right -->
+      <h2 class="card-question">
+        <%= (card && card.question) ? card.question : 'No question provided' %>
+      </h2>
+    </div>
+  
+    <!-- Bottom Info -->
+    <div class="bottom-info">
+      <!-- Deck name on bottom left -->
+      <span class="deck-name"><%= deckName %></span>
+  
+      <!-- Author name on bottom right (only if it exists) -->
+      <% if (card && card.authorName) { %>
+        <span class="author-name"><%= card.authorName %></span>
+      <% } %>
+    </div>
+  </div>
+  
