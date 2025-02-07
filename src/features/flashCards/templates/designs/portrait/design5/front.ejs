@@ -1,0 +1,121 @@
+<!-- src/features/flashCards/newtemp/designs/vertical/design5/front.ejs -->
+<style>
+    /* Bold black and gold design */
+  
+    .card-front {
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      padding: 5%;
+      position: relative;
+      /* Luxurious black background */
+      background-color: #000000;
+      /* A classy sans-serif. Fallback to Arial if Montserrat isn’t available. */
+      font-family: "Montserrat", Arial, sans-serif;
+      color: #FFD700; /* gold text */
+  
+      /* Thick gold border and subtle rounding */
+      border: 3px solid #FFD700;
+      border-radius: 6px;
+    }
+  
+    /* QR code: mid-page, dashed gold outline */
+    .qr-code-area {
+      width: 30%;
+      aspect-ratio: 1 / 1;
+      margin: 0 auto 5%;
+      border: 2px dashed #FFD700;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-sizing: border-box;
+      font-size: 0.8em;
+    }
+    .qr-code-area img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+  
+    /* Large, center question in gold, with a subtle glow */
+    .card-question {
+      text-align: center;
+      font-size: 1.3em;
+      font-weight: 600;
+      margin-top: 10%;
+      text-transform: uppercase;
+      text-shadow: 0 0 5px rgba(255, 215, 0, 0.7);
+    }
+  
+    /*
+      Bottom Info area:
+      - If authorName is null: center deckName
+      - If authorName exists: deckName left, author right
+    */
+    .bottom-info {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 5%;
+      display: flex;
+      align-items: center;
+      font-size: 0.9em;
+      padding: 0 1em; /* space inside the card sides */
+      /* Allow wrapping for long text */
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+    .bottom-info.center-only {
+      justify-content: center;
+    }
+    .bottom-info.with-author {
+      justify-content: space-between;
+    }
+  
+    /* deck-name and author-name can share up to half the space each */
+    .deck-name,
+    .author-name {
+      max-width: 45%;
+    }
+  
+    @media print {
+      .card-front {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+  
+  <!-- FRONT SIDE -->
+  <div class="card-front">
+    <!-- QR Code -->
+    <div class="qr-code-area">
+      <% if (card && card.qrCodeUrl) { %>
+        <img src="<%= card.qrCodeUrl %>" alt="QR Code" />
+      <% } else { %>
+        No QR Code
+      <% } %>
+    </div>
+  
+    <!-- QUESTION -->
+    <h2 class="card-question">
+      <%= (card && card.question) ? card.question : 'No question provided' %>
+    </h2>
+  
+    <!-- Bottom Info: deck/author logic -->
+    <div
+      class="bottom-info 
+      <%= (card && card.authorName) ? 'with-author' : 'center-only' %>"
+    >
+      <% if (card && card.authorName) { %>
+        <!-- Author exists: show both deckName (left) and authorName (right) -->
+        <span class="deck-name"><%= deckName %></span>
+        <span class="author-name"><%= card.authorName %></span>
+      <% } else { %>
+        <!-- No author: center deckName -->
+        <span class="deck-name"><%= deckName %></span>
+      <% } %>
+    </div>
+  </div>
+  
