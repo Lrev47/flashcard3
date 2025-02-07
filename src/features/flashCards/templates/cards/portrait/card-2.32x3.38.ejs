@@ -1,0 +1,60 @@
+<!-- src/features/flashCards/newtemp/cards/vertical/card-2.32x3.38.ejs -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Card 2.32x3.38 Vertical View</title>
+
+  <!-- If you need highlight.js theme -->
+  <% if (typeof themeCSS === 'string') { %>
+    <style><%- themeCSS %></style>
+  <% } %>
+
+  <style>
+    /*
+      Demo container to see front/back side by side
+      in a vertical (portrait) orientation.
+    */
+    .card1-vertical-container {
+      display: flex;
+      justify-content: space-around;
+      align-items: flex-start;
+      margin: 2rem auto;
+      width: 90%;
+    }
+
+    /*
+      Each card is 2.32" wide x 3.38" tall for Yu-Gi-Oh sizing.
+      We mirror the approach used in card-2.2x3.5.ejs.
+    */
+    .front-wrapper-vertical,
+    .back-wrapper-vertical {
+      width: 2.32in;
+      height: 3.38in;
+      margin: 0 1rem;
+      border: 1px solid #999;
+      overflow: hidden;
+      position: relative;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+  <div class="card1-vertical-container">
+    <div class="front-wrapper-vertical">
+      <%- include('./front.ejs', {
+        card,
+        deckName,
+        highlightCode
+      }) %>
+    </div>
+    <div class="back-wrapper-vertical">
+      <%- include('./back.ejs', {
+        card,
+        deckName,
+        highlightCode
+      }) %>
+    </div>
+  </div>
+</body>
+</html>
