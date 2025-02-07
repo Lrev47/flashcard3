@@ -1,0 +1,289 @@
+<!-- src/features/flashCards/newtemp/designs/landscape/design4/back.ejs -->
+<style>
+    /* Classic & Elegant back side in landscape */
+    .card-back {
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      position: relative;
+      padding: 5%;
+      font-family: "Garamond", Georgia, serif; /* classic serif */
+      color: #2c2c2c;
+      background-color: #faf8f2; /* soft cream/off-white */
+      border: 2px solid #2e2b48; /* deep navy border */
+      border-radius: 6px;
+  
+      /* Rotate 180 degrees for printing in landscape */
+      transform: rotate(180deg);
+      transform-origin: center center;
+      overflow: hidden; /* no scrollbars */
+    }
+  
+    /*
+      .scalable-content: container for answer and examples.
+      We'll manually handle scaling (no auto-scroll).
+    */
+    .scalable-content {
+      font-size: 1em;
+      line-height: 1.4;
+      position: relative;
+      width: 100%;
+      max-height: 100%;
+      overflow: hidden;
+    }
+  
+    /*
+      For the landscape layout:
+        - If there's both an answer and example, display side by side
+        - If no example, center the answer only
+    */
+    .horizontal-layout {
+      display: flex;
+      justify-content: space-evenly;
+      align-items: flex-start;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+    }
+    .answer-area,
+    .example-area {
+      width: 45%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .centered-answer {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+    }
+  
+    /*
+      For scaling the main answer text:
+      .answer-scale-wrapper -> .answer-scale-inner
+    */
+    .answer-scale-wrapper {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      position: relative;
+    }
+    .answer-scale-inner {
+      display: inline-block;
+      transform-origin: top center;
+    }
+  
+    /* Main answer styling */
+    .card-answer {
+      margin-top: 5%;
+      text-align: center;
+      font-weight: 600;
+      font-size: 1.2em;
+      color: #2c2c2c;
+    }
+  
+    /* Example area styling */
+    .card-example {
+      text-align: center;
+      margin-top: 4%;
+      font-size: 0.9em;
+      color: #555;
+      font-style: italic;
+  
+      /* Center items (code snippets, images, etc.) */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+  
+    /* Ensure code wraps so it won't overflow horizontally */
+    pre.hljs,
+    code.hljs {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+  
+    /*
+      For scaling code snippets/diagrams:
+      .code-scale-wrapper -> .code-scale-inner
+    */
+    .code-scale-wrapper {
+      position: relative;
+      width: 100%;
+      margin-top: 1em;
+  
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+    .code-scale-inner {
+      display: inline-block;
+      transform-origin: top center;
+    }
+  
+    /* Print color adjustments */
+    @media print {
+      .card-back {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+  
+  <!-- BACK SIDE (Landscape Layout for Design4) -->
+  <div class="card-back">
+    <div class="scalable-content">
+  
+      <!-- Server-side logic for deciding how to display answer & example -->
+      <%
+        const hasCard = !!card;
+        const atype = hasCard ? card.answerType : null;
+        const examplesData = hasCard ? card.examples : null;
+        const answerText = (card && card.answer) ? card.answer : 'No answer provided';
+  
+        let shouldShowExample = false;
+        if (hasCard && examplesData) {
+          if (
+            atype === 'CODE_SNIPPET' ||
+            atype === 'FLOWCHART' ||
+            atype === 'DIAGRAM'
+          ) {
+            shouldShowExample = true;
+          } else if (atype === undefined || atype === null) {
+            // Possibly a "regular" example text?
+            shouldShowExample = true;
+          }
+        }
+      %>
+  
+      <!-- If there's an example, display side-by-side. Otherwise, center the answer. -->
+      <% if (hasCard && atype !== 'NONE' && shouldShowExample) { %>
+        <div class="horizontal-layout">
+          <!-- ANSWER (Left side) -->
+          <div class="answer-area">
+            <div class="answer-scale-wrapper">
+              <div class="answer-scale-inner">
+                <h3 class="card-answer"><%= answerText %></h3>
+              </div>
+            </div>
+          </div>
+  
+          <!-- EXAMPLE (Right side) -->
+          <div class="example-area">
+            <div class="card-example">
+              <% 
+                // Use highlightCode if available
+                const renderHighlighted = (rawCode) => {
+                  if (typeof highlightCode === 'function') {
+                    return highlightCode(rawCode);
+                  }
+                  return rawCode; // fallback
+                };
+  
+                if (atype === 'CODE_SNIPPET') {
+              %>
+                <% if (Array.isArray(examplesData)) {
+                    examplesData.forEach(ex => {
+                      const codeContent = ex && ex.code ? ex.code : '';
+                      const snippetHtml = renderHighlighted(codeContent);
+                %>
+                  <div class="code-scale-wrapper">
+                    <div class="code-scale-inner">
+                      <pre class="hljs"><code class="hljs"><%- snippetHtml %></code></pre>
+                    </div>
+                  </div>
+                <%   });
+                  } else {
+                    const codeContent = (examplesData && examplesData.code)
+                      ? examplesData.code 
+                      : '';
+                    const snippetHtml = renderHighlighted(codeContent);
+                %>
+                  <div class="code-scale-wrapper">
+                    <div class="code-scale-inner">
+                      <pre class="hljs"><code class="hljs"><%- snippetHtml %></code></pre>
+                    </div>
+                  </div>
+                <% } %>
+  
+              <% } else if (atype === 'FLOWCHART' || atype === 'DIAGRAM') { %>
+                <% if (typeof examplesData === 'string') { %>
+                  <img src="<%= examplesData %>" alt="Flowchart/Diagram" style="max-width:100%;" />
+                <% } else { %>
+                  No valid image URL
+                <% } %>
+  
+              <% } else { %>
+                <!-- Default or "regular" example text -->
+                <% if (Array.isArray(examplesData)) { %>
+                  <%= examplesData.join(', ') %>
+                <% } else { %>
+                  <%= examplesData %>
+                <% } %>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      <% } else { %>
+        <!-- Only answer (centered) -->
+        <div class="centered-answer">
+          <div class="answer-scale-wrapper">
+            <div class="answer-scale-inner">
+              <h3 class="card-answer"><%= answerText %></h3>
+            </div>
+          </div>
+        </div>
+      <% } %>
+  
+    </div> <!-- END .scalable-content -->
+  
+    <!-- SCALE-DOWN SCRIPT -->
+    <script>
+      (function() {
+        /*
+          We scale down both:
+           1) The answer text area (.answer-scale-wrapper)
+           2) Any code snippet areas (.code-scale-wrapper)
+          if the content exceeds the container size.
+        */
+        const scaleWrappers = document.querySelectorAll(
+          '.answer-scale-wrapper, .code-scale-wrapper'
+        );
+  
+        scaleWrappers.forEach(wrapper => {
+          const inner = wrapper.querySelector(
+            '.answer-scale-inner, .code-scale-inner'
+          );
+          if (!inner) return;
+  
+          // Reset transforms
+          inner.style.transform = '';
+  
+          // Measure container vs. content
+          const wrapRect  = wrapper.getBoundingClientRect();
+          const innerRect = inner.getBoundingClientRect();
+  
+          // Some bottom margin to avoid clipping
+          const BOTTOM_MARGIN = 10;
+          let usableHeight = wrapRect.height - BOTTOM_MARGIN;
+          if (usableHeight < 0) usableHeight = 0;
+  
+          const scaleW = wrapRect.width / innerRect.width;
+          const scaleH = usableHeight   / innerRect.height;
+          let scale = Math.min(scaleW, scaleH);
+  
+          // Only shrink if content is bigger than container
+          if (scale < 1) {
+            // Optionally enforce a min scale (e.g., 0.75)
+            scale = Math.max(scale, 0.75);
+            inner.style.transform = 'scale(' + scale + ')';
+          }
+        });
+      })();
+    </script>
+  </div>
+  
