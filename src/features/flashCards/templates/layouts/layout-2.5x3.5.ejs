@@ -1,0 +1,130 @@
+<!-- src/features/flashCards/templates/layouts/layout-2.5x3.5.ejs -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Flashcard PDF - Layout 2.5x3.5</title>
+
+  <!-- Portrait layout: 8.5" wide x 11" tall -->
+  <meta name="viewport" content="width=8.5in, height=11in, initial-scale=1.0" />
+
+  <!-- If you need highlight.js theme -->
+  <% if (typeof themeCSS === 'string') { %>
+    <style><%- themeCSS %></style>
+  <% } %>
+
+  <style>
+    /* Remove default margins and force a portrait Letter page */
+    @media print {
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 8.5in;
+        height: 11in;
+      }
+      .page {
+        page-break-after: always;
+      }
+    }
+
+    @page {
+      size: 8.5in 11in; /* Portrait: 8.5" wide, 11" tall */
+      margin: 0;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 8.5in;
+      height: 11in;
+      font-family: Arial, sans-serif;
+    }
+
+    /* Each "page" is 8.5" x 11", with a thin border to visualize the boundary */
+    .page {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 8.5in;
+      height: 11in;
+      box-sizing: border-box;
+      border: 1px solid #000; /* Thin line to visualize page dimension */
+    }
+
+    /* 
+      Grid for 8 cards: 4 columns x 2 rows.
+      Each card is 2.5" wide x 3.5" tall = total 10" wide x 7" tall.
+      That's wider than 8.5" => may be clipped unless you scale to fit.
+    */
+    .cards-grid {
+      rotate: 90deg;  /* replicates your 2.2x3.5 approach if you want them rotated */
+      display: grid;
+      grid-template-columns: repeat(4, 2.5in);
+      grid-template-rows: repeat(2, 3.5in);
+      gap: 0;
+      border: 1px dashed #000; /* Thin dashed line around the entire grid */
+      box-sizing: border-box;
+    }
+
+    /* Each card is 2.5" wide x 3.5" tall */
+    .card {
+      width: 2.5in;
+      height: 3.5in;
+      border: 1px dashed #ccc; /* Optional dashed border on each card */
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <%
+    // Process cards in chunks of 8 (front + back)
+    for (let i = 0; i < cards.length; i += 8) {
+      const chunk = cards.slice(i, i + 8);
+
+      // For the back page, swap rows if > 4 cards
+      let backPositions;
+      if (chunk.length > 4) {
+        const topRow = chunk.slice(0, 4);
+        const bottomRow = chunk.slice(4);
+        backPositions = bottomRow.concat(topRow);
+      } else {
+        backPositions = chunk.slice();
+      }
+  %>
+  
+  <!-- FRONT PAGE (up to 8 cards) -->
+  <div class="page">
+    <div class="cards-grid">
+      <% chunk.forEach((cardFront) => { %>
+        <div class="card">
+          <%- include('../' + designFolder + '/front.ejs', {
+            card: cardFront,
+            deckName,
+            highlightCode
+          }) %>
+        </div>
+      <% }); %>
+    </div>
+  </div>
+
+  <!-- BACK PAGE (up to 8 cards) -->
+  <div class="page">
+    <div class="cards-grid">
+      <% backPositions.forEach((cardBack) => { %>
+        <div class="card">
+          <%- include('../' + designFolder + '/back.ejs', {
+            card: cardBack,
+            deckName,
+            highlightCode
+          }) %>
+        </div>
+      <% }); %>
+    </div>
+  </div>
+
+  <%
+    } // end for loop
+  %>
+</body>
+</html>
