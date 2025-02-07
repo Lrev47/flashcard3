@@ -1,0 +1,59 @@
+<!-- /src/features/flashCards/newtemp/cards/vertical/businessCard-5x7.ejs -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>businessCard Landscape View (7x5)</title>
+
+  <!-- If you need highlight.js theme -->
+  <% if (typeof themeCSS === 'string') { %>
+    <style><%- themeCSS %></style>
+  <% } %>
+
+  <style>
+    /*
+      Demo container so you can see front/back side by side,
+      oriented horizontally (landscape).
+    */
+    .card1-landscape-container {
+      display: flex;
+      justify-content: space-around;
+      align-items: flex-start;
+      margin: 2rem auto;
+      width: 90%;
+    }
+
+    /*
+      Card is now 7in wide x 5in tall for the landscape 7x5 index card.
+    */
+    .front-wrapper-landscape,
+    .back-wrapper-landscape {
+      width: 7in;
+      height: 5in;
+      margin: 0 1rem;
+      border: 1px solid #999;
+      overflow: hidden;
+      position: relative;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+  <div class="card1-landscape-container">
+    <div class="front-wrapper-landscape">
+      <%- include('./front.ejs', {
+        card,
+        deckName,
+        highlightCode
+      }) %>
+    </div>
+    <div class="back-wrapper-landscape">
+      <%- include('./back.ejs', {
+        card,
+        deckName,
+        highlightCode
+      }) %>
+    </div>
+  </div>
+</body>
+</html>
