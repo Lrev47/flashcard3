@@ -1,0 +1,174 @@
+<!-- src/features/flashCards/templates/layouts/layout-3x5.ejs -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>3x5 Index Cards - Four per Page</title>
+
+  <!-- 
+    Standard Letter: 8.5" x 11" in portrait orientation.
+    We set half-inch margins around (0.5" each side),
+    giving us 7.5" x 10" usable space for the cards.
+  -->
+  <meta name="viewport" content="width=8.5in, height=11in, initial-scale=1.0" />
+
+  <!-- If you need highlight.js theme -->
+  <% if (typeof themeCSS === 'string') { %>
+    <style><%- themeCSS %></style>
+  <% } %>
+
+  <style>
+    /* 
+      Force 8.5" x 11" page size, 
+      with zero default margin so we handle them in .page.
+    */
+    @page {
+      size: 8.5in 11in;
+      margin: 0; /* We'll define our own margins below */
+    }
+
+    @media print {
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 8.5in;
+        height: 11in;
+      }
+      .page {
+        page-break-after: always;
+      }
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 8.5in;
+      height: 11in;
+      font-family: Arial, sans-serif;
+      box-sizing: border-box;
+    }
+
+    /*
+      .page has 0.5" margins on all sides,
+      leaving 7.5" width (8.5 - 1) and 10" height (11 - 1).
+      We draw a thin border to visualize the full page boundary.
+    */
+    .page {
+      width: 8.5in;
+      height: 11in;
+      padding: 0.5in;
+      box-sizing: border-box;
+      border: 1px solid #000; /* For visualization only */
+
+      display: flex;
+      justify-content: center;
+      align-items: flex-start; 
+      /* or center if you prefer the grid fully centered vertically */
+    }
+
+    /* 
+      Inside the 7.5" x 10" space, 
+      we fit a 2x2 grid of 3" x 5" cards => 4 cards total.
+      That uses exactly 6" width (2 * 3") by 10" height (2 * 5"),
+      leaving 1.5" spare horizontally.
+    */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 3in);
+      grid-template-rows: repeat(2, 5in);
+      gap: 0;
+      box-sizing: border-box;
+      width: 7.5in; 
+      height: 10in;
+      border: 1px dashed #000; /* optional dashed line around the grid */
+      justify-content: center;
+    }
+
+    /* Each card is exactly 3" x 5" */
+    .card {
+      width: 3in;
+      height: 5in;
+      border: 1px dashed #ccc; /* optional border on each card */
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+
+    /*
+      We'll rotate the BACK card content by 180° 
+      AND swap columns in the data array for the back page only.
+    */
+    .rotate-180 {
+      transform: rotate(180deg);
+      transform-origin: center center;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+  <%
+    /*
+      We handle up to 4 cards at a time (chunk of 4):
+        chunk[0] => front row0 col0
+        chunk[1] => front row0 col1
+        chunk[2] => front row1 col0
+        chunk[3] => front row1 col1
+
+      For the back page, we want:
+        row0 col0 => chunk[1]
+        row0 col1 => chunk[0]
+        row1 col0 => chunk[3]
+        row1 col1 => chunk[2]
+      AND we rotate them 180° so they appear upright after a long-edge flip.
+    */
+    for (let i = 0; i < cards.length; i += 4) {
+      const chunk = cards.slice(i, i + 4);
+
+      // If we have a full chunk of 4, reorder columns for the back:
+      let backPositions;
+      if (chunk.length === 4) {
+        backPositions = [ chunk[1], chunk[0], chunk[3], chunk[2] ];
+      } else {
+        // If fewer than 4 remain, no special reorder
+        backPositions = chunk.slice();
+      }
+  %>
+  
+  <!-- FRONT PAGE (up to 4 cards) -->
+  <div class="page">
+    <div class="cards-grid">
+      <% chunk.forEach((cardFront) => { %>
+        <div class="card">
+          <%- include('../' + designFolder + '/front.ejs', {
+            card: cardFront,
+            deckName,
+            highlightCode
+          }) %>
+        </div>
+      <% }); %>
+    </div>
+  </div>
+
+  <!-- BACK PAGE (up to 4 cards) with column swap + rotate 180 -->
+  <div class="page">
+    <div class="cards-grid">
+      <% backPositions.forEach((cardBack) => { %>
+        <div class="card">
+          <div class="rotate-180">
+            <%- include('../' + designFolder + '/back.ejs', {
+              card: cardBack,
+              deckName,
+              highlightCode
+            }) %>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+  </div>
+
+  <%
+    } // end for loop
+  %>
+</body>
+</html>
