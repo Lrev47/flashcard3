@@ -1,0 +1,96 @@
+<!-- src/features/flashCards/newtemp/designs/vertical/design1/front.ejs -->
+<style>
+    .card-front {
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      padding: 5%;
+      position: relative;
+      font-family: Arial, sans-serif;
+      border: none;
+      border-radius: 0;
+      /* Prevent content from flowing outside the card container */
+      overflow: hidden;
+    }
+  
+    .qr-code-area {
+      width: 30%;
+      aspect-ratio: 1 / 1;
+      margin: 0 auto 5%;
+      border: 1px dashed #888;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-sizing: border-box;
+    }
+    .qr-code-area img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+  
+    .card-question {
+      text-align: center;
+      font-size: 1.2em;
+      margin-top: 5%; /* was 10%, now 5% in design1.ejs */
+    }
+  
+    .bottom-info {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 5%;
+      display: flex;
+      align-items: center;
+      padding: 0 1em;
+      font-size: 0.75em;
+      color: #333;
+      /* Let text wrap if it’s too long */
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+    .bottom-info.center-only {
+      justify-content: center;
+    }
+    .bottom-info.with-author {
+      justify-content: space-between;
+    }
+    .bottom-info span {
+      max-width: 45%;
+    }
+    .deck-name {
+      text-align: center;
+    }
+    .author-name {
+      text-align: center;
+    }
+  </style>
+  
+  <!-- FRONT SIDE -->
+  <div class="card-front">
+    <div class="qr-code-area">
+      <% if (card && card.qrCodeUrl) { %>
+        <img src="<%= card.qrCodeUrl %>" alt="QR Code" />
+      <% } else { %>
+        No QR Code
+      <% } %>
+    </div>
+  
+    <h2 class="card-question">
+      <%= card && card.question ? card.question : 'No question provided' %>
+    </h2>
+  
+    <div
+      class="bottom-info 
+      <%= (card && card.authorName) ? 'with-author' : 'center-only' %>"
+    >
+      <% if (card && card.authorName) { %>
+        <span class="deck-name"><%= deckName %></span>
+        <span class="author-name"><%= card.authorName %></span>
+      <% } else { %>
+        <span class="deck-name"><%= deckName %></span>
+      <% } %>
+    </div>
+  </div>
+  

@@ -1,0 +1,233 @@
+<!-- src/features/flashCards/newtemp/designs/vertical/design1/back.ejs -->
+<style>
+    .card-back {
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      padding: 5%;
+      position: relative;
+      font-family: Arial, sans-serif;
+      border: none;
+      border-radius: 0;
+      overflow: hidden; /* no scroll or overflow here either */
+  
+      /* rotate the entire back side 180 degrees for printing orientation */
+      transform: rotate(180deg);
+      transform-origin: center center;
+    }
+  
+    /*
+      .scalable-content:
+        - This container holds the answer and examples.
+        - We remove scrolling (overflow: hidden) so we can manually scale.
+        - Use max-height: 100% so it occupies the full back.
+    */
+    .scalable-content {
+      font-size: 0.9em;
+      line-height: 1.2;
+      position: relative;
+      width: 100%;
+      max-height: 100%;
+      overflow: hidden; /* no scroll */
+    }
+  
+    /* 
+      We wrap the entire answer in a "answer-scale-wrapper" so it can scale 
+      similarly to how code snippets are scaled. 
+    */
+    .answer-scale-wrapper {
+      position: relative;
+      width: 100%;
+      /* Flex center if you want the answer text strictly centered horizontally: */
+      display: flex;
+      justify-content: center;
+    }
+  
+    .answer-scale-inner {
+      display: inline-block;
+      /* Use top center so scaling keeps it centered horizontally */
+      transform-origin: top center;
+      width: auto; /* auto so we can see the scaling effect properly */
+    }
+  
+    .card-answer {
+      margin-top: 5%;
+      text-align: center;
+    }
+  
+    /* 
+      .card-example: ensure example area is flex-centered as well
+      so text/images/code below the answer remain centered.
+    */
+    .card-example {
+      margin-top: 4%;
+      color: #555;
+      font-size: 0.9em;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+  
+    /* Code snippets: ensure wrapping. */
+    pre.hljs, code.hljs {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+  
+    /*
+      code-scale-wrapper for code snippets or diagrams 
+      so they can be scaled if too large.
+      We also use flex-center so the scaled snippet remains centered.
+    */
+    .code-scale-wrapper {
+      position: relative;
+      width: 100%;
+      margin-top: 1em;
+  
+      display: flex;            /* NEW for horizontal centering */
+      justify-content: center;  /* NEW for horizontal centering */
+      align-items: flex-start;
+    }
+  
+    .code-scale-inner {
+      display: inline-block;
+      /* Use top center so scaling remains centered horizontally */
+      transform-origin: top center;
+    }
+  </style>
+  
+  <!-- BACK SIDE -->
+  <div class="card-back">
+    <div class="scalable-content">
+  
+      <!-- ANSWER (wrapped in answer-scale-wrapper) -->
+      <div class="answer-scale-wrapper">
+        <div class="answer-scale-inner">
+          <h3 class="card-answer">
+            <%= card && card.answer ? card.answer : 'No answer provided' %>
+          </h3>
+        </div>
+      </div>
+  
+      <!-- EXAMPLE AREA -->
+      <%
+        const hasCard = !!card;
+        const atype = hasCard ? card.answerType : null;
+        const examplesData = hasCard ? card.examples : null;
+        let shouldShowExample = false;
+  
+        if (hasCard && examplesData) {
+          if (
+            atype === 'CODE_SNIPPET' ||
+            atype === 'FLOWCHART' ||
+            atype === 'DIAGRAM'
+          ) {
+            shouldShowExample = true;
+          } else if (atype === undefined || atype === null) {
+            // Possibly user has a "regular" example text?
+            shouldShowExample = true;
+          }
+        }
+      %>
+  
+      <% if (hasCard && atype !== 'NONE' && shouldShowExample) { %>
+        <div class="card-example">
+          <% if (atype === 'CODE_SNIPPET') { 
+               const renderHighlighted = (rawCode) => {
+                 if (typeof highlightCode === 'function') {
+                   return highlightCode(rawCode);
+                 }
+                 return rawCode; // fallback
+               };
+          %>
+  
+            <% if (Array.isArray(examplesData)) { 
+                 examplesData.forEach(ex => {
+                   const codeContent = ex && ex.code ? ex.code : '';
+                   const snippetHtml = renderHighlighted(codeContent);
+            %>
+              <div class="code-scale-wrapper">
+                <div class="code-scale-inner">
+                  <pre class="hljs"><code class="hljs"><%- snippetHtml %></code></pre>
+                </div>
+              </div>
+            <%   });
+               } else {
+                 const codeContent = (examplesData && examplesData.code)
+                   ? examplesData.code
+                   : '';
+                 const snippetHtml = renderHighlighted(codeContent);
+            %>
+              <div class="code-scale-wrapper">
+                <div class="code-scale-inner">
+                  <pre class="hljs"><code class="hljs"><%- snippetHtml %></code></pre>
+                </div>
+              </div>
+            <% } %>
+  
+          <% } else if (atype === 'FLOWCHART' || atype === 'DIAGRAM') { %>
+            <% if (typeof examplesData === 'string') { %>
+              <img src="<%= examplesData %>" alt="Flowchart/Diagram" style="max-width:100%;" />
+            <% } %>
+          <% } else { %>
+            <!-- Default or "regular" example text -->
+            <% if (Array.isArray(examplesData)) { %>
+              <%= examplesData.join(', ') %>
+            <% } else { %>
+              <%= examplesData %>
+            <% } %>
+          <% } %>
+        </div>
+      <% } %>
+    </div><!-- END .scalable-content -->
+  
+    <!-- SCALE-DOWN SCRIPT -->
+    <script>
+      (function() {
+        /*
+          We want to scale down:
+           1) The answer itself (.answer-scale-wrapper)
+           2) Any code snippets or examples (.code-scale-wrapper)
+          if the content overflows the parent container.
+        */
+        // Combine both types of scale wrappers in one array
+        const scaleWrappers = document.querySelectorAll(
+          '.answer-scale-wrapper, .code-scale-wrapper'
+        );
+  
+        scaleWrappers.forEach(wrapper => {
+          const inner = wrapper.querySelector('.answer-scale-inner, .code-scale-inner');
+          if (!inner) return; // skip if no child
+  
+          // Reset transforms
+          inner.style.transform = '';
+          // We set transform-origin in CSS to 'top center'
+          // to keep it horizontally centered upon scaling.
+  
+          // Measure
+          const wrapRect  = wrapper.getBoundingClientRect();
+          const innerRect = inner.getBoundingClientRect();
+  
+          // Some bottom margin to avoid text clipping
+          const BOTTOM_MARGIN = 10;
+          let usableHeight = wrapRect.height - BOTTOM_MARGIN;
+          if (usableHeight < 0) usableHeight = 0;
+  
+          // Calculate scale
+          let scaleW = wrapRect.width  / innerRect.width;
+          let scaleH = usableHeight    / innerRect.height;
+          let scale  = Math.min(scaleW, scaleH);
+  
+          // Only shrink if content is bigger than container
+          if (scale < 1) {
+            // Optionally enforce a minimum scale, e.g. 75%
+            scale = Math.max(scale, 0.75);
+            inner.style.transform = 'scale(' + scale + ')';
+          }
+        });
+      })();
+    </script>
+  </div>
+  
