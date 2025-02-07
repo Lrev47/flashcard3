@@ -1,0 +1,159 @@
+<!-- src/features/flashCards/newtemp/designs/landscape/design7/front.ejs -->
+<style>
+    /* 
+      Art Deco-style design:
+        - deep navy background
+        - geometric gold lines / frames
+        - refined type
+    */
+  
+    .artdeco-front {
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      padding: 5%;
+      background-color: #0b1e33; /* deep navy */
+      font-family: "Cormorant Garamond", Georgia, serif;
+      color: #ffd700; /* gold text */
+  
+      /* Distinctive double-border frame in gold, with a geometric corner effect */
+      border: 4px double #ffd700;
+      border-radius: 0; /* angular corners for an Art Deco feel */
+      position: relative;
+  
+      /* Use flex to arrange top (QR + question) and bottom info */
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+  
+    /* A decorative top bar with angled corners, via pseudo-element */
+    .artdeco-front::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 10px;
+      background: repeating-linear-gradient(
+        45deg,
+        #ffd700,
+        #ffd700 5px,
+        #0b1e33 5px,
+        #0b1e33 10px
+      );
+      /* Ensure it stays on top but behind content text */
+      z-index: 1;
+    }
+  
+    /* Container for top row */
+    .top-row {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: flex-start;
+      /* Position content above the decorative bar */
+      position: relative;
+      z-index: 2;
+    }
+  
+    /* QR code on top-left */
+    .artdeco-qr {
+      width: 35%;
+      aspect-ratio: 1 / 1;
+      border: 1px dashed #ffd700;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-sizing: border-box;
+      font-size: 0.8em;
+      margin: 0; /* remove vertical centering from vertical layout */
+    }
+    .artdeco-qr img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+  
+    /* Question on top-right */
+    .artdeco-question {
+      width: 60%;
+      text-align: right;
+      font-size: 1.3em;
+      margin: 0; /* remove extra margin to align with QR code */
+      margin-top: 1em; /* small offset from top edge */
+      font-weight: 600;
+      text-transform: uppercase;
+      text-shadow: 0 0 4px rgba(255, 215, 0, 0.5);
+    }
+  
+    /*
+      Bottom Info area:
+      - If authorName is null: center deckName
+      - If authorName exists: deckName left, author right
+    */
+    .artdeco-bottom {
+      display: flex;
+      align-items: center;
+      /* If there's an author, space-between; else center */
+      font-size: 0.9em;
+      font-style: italic;
+      padding: 0 1em; /* spacing inside the card sides */
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      position: relative;
+      z-index: 2; /* ensure above decorative bar */
+    }
+    .artdeco-bottom.center-only {
+      justify-content: center;
+    }
+    .artdeco-bottom.with-author {
+      justify-content: space-between;
+    }
+  
+    .artdeco-topic,
+    .artdeco-author {
+      max-width: 45%;
+    }
+  
+    /* Print adjustments for the front side */
+    @media print {
+      .artdeco-front {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+  
+  <!-- FRONT SIDE -->
+  <div class="artdeco-front">
+    <!-- Top row: QR (left) and Question (right) -->
+    <div class="top-row">
+      <!-- QR Code -->
+      <div class="artdeco-qr">
+        <% if (card && card.qrCodeUrl) { %>
+          <img src="<%= card.qrCodeUrl %>" alt="QR Code" />
+        <% } else { %>
+          No QR Code
+        <% } %>
+      </div>
+  
+      <!-- QUESTION -->
+      <h2 class="artdeco-question">
+        <%= card && card.question ? card.question : 'No question provided' %>
+      </h2>
+    </div>
+  
+    <!-- Bottom Info: deck (left), author (right if present) -->
+    <div 
+      class="artdeco-bottom 
+      <%= (card && card.authorName) ? 'with-author' : 'center-only' %>"
+    >
+      <span class="artdeco-topic"><%= deckName %></span>
+      <% if (card && card.authorName) { %>
+        <span class="artdeco-author"><%= card.authorName %></span>
+      <% } %>
+    </div>
+  </div>
+  
