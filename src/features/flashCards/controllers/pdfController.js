@@ -5,10 +5,10 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import hljs from 'highlight.js';
 import ejs from 'ejs';
-import cardService from '../services/cardService.js';
-import { generatePDF } from '../services/pdfGenerator.js';
 
 import prisma from '../../../config/prismaClient.js';
+import cardService from '../services/cardService.js';
+import { generatePDF } from '../services/pdfGenerator.js';
 
 /**
  * Helper: load theme CSS + define highlight function
@@ -16,7 +16,6 @@ import prisma from '../../../config/prismaClient.js';
 function getHighlightSetup() {
   let themeCSS = '';
   try {
-    // Adjust if you want a different .css file in highlight.js/styles/
     const themePath = path.join(
       process.cwd(),
       'node_modules',
@@ -31,7 +30,6 @@ function getHighlightSetup() {
 
   function highlightCode(codeString) {
     try {
-      // auto-detect language
       const result = hljs.highlightAuto(codeString);
       return result.value;
     } catch (error) {
@@ -43,229 +41,177 @@ function getHighlightSetup() {
 }
 
 /**
- * GET /cards/:deckId/pdf?layout=layout1&style=design1
+ * Utility: Builds file/folder names for layout, card, design
+ * from query params (size, orientation, design).
  */
-export async function generateFlashcardsPDFHandler(req, res) {
+function buildTemplatePaths(size, orientation, design) {
+  /*
+    For size='3x5', orientation='portrait', design='design1' =>
+
+    layoutFile   = "layout-3x5.ejs"
+    cardFile     = "card-3x5.ejs"
+    designFolder = "designs/portrait/design1"
+
+    Then EJS can do "../designs/portrait/design1/front.ejs"
+  */
+  const layoutFile = `layout-${size}.ejs`;
+  const cardFile = `card-${size}.ejs`;
+
+  return {
+    layoutFile,
+    cardFolder: path.join('cards', orientation),
+    cardFile,
+    // orientation subfolder if your designs are stored like "designs/portrait/design1"
+    designFolder: path.join('designs', orientation, design),
+  };
+}
+
+/* --------------------------------------------------------------------------
+   1) PREVIEW
+   GET /cards/:deckId/previewLayout2?size=3x5&orientation=portrait&design=design1
+   -------------------------------------------------------------------------- */
+export async function previewLayoutHandler(req, res) {
   try {
     const { deckId } = req.params;
-    const layoutName = req.query.layout || 'layout1';
-    const styleName = req.query.style || 'design1';
+    const {
+      size = '3x5',
+      orientation = 'portrait',
+      design = 'design1',
+      cardIndex: cardIndexParam,
+    } = req.query;
 
-    const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    const templatePath = path.join(
-      __dirname,
-      '..',
-      'templates',
-      'layouts',
-      `${layoutName}.ejs`
-    );
-
-    // 1) Fetch the deck to get deckName
+    // 1) Deck name
     const deck = await prisma.deck.findUnique({
       where: { id: deckId },
       select: { name: true },
     });
-    const deckName = deck ? deck.name : 'No deck name found';
+    const deckName = deck ? deck.name : 'Untitled Deck';
 
-    // 2) Fetch real card data from DB
-    const cards = await cardService.findCardsByDeckId(deckId);
+    // 2) Cards
+    let cards = await cardService.findCardsByDeckId(deckId);
 
-    // 3) Load highlight setup (theme + function)
+    // If single cardIndex is requested
+    if (cardIndexParam !== undefined) {
+      const idx = parseInt(cardIndexParam, 10);
+      cards = cards[idx] ? [cards[idx]] : [];
+    }
+
+    // 3) Paths
+    const __dirname = path.dirname(fileURLToPath(import.meta.url));
+    const { layoutFile, cardFolder, cardFile, designFolder } = buildTemplatePaths(
+      size,
+      orientation,
+      design
+    );
+    const layoutPath = path.join(__dirname, '..', 'templates', 'layouts', layoutFile);
+
+    // 4) highlight.js setup
     const { themeCSS, highlightCode } = getHighlightSetup();
 
-    // 4) Prepare data for EJS
-    const ejsData = {
-      style: styleName,
+    // 5) Render EJS
+    const htmlString = await ejs.renderFile(layoutPath, {
+      deckName,
       cards,
+      orientation,
+      size,
+      design,
       themeCSS,
       highlightCode,
-      deckName, // Pass deck name here
+      cardFolder,
+      cardFile,
+      designFolder,
+    });
+
+    // 6) Return HTML
+    res.setHeader('Content-Type', 'text/html');
+    return res.send(htmlString);
+
+  } catch (error) {
+    console.error('[previewLayoutHandler] Error:', error);
+    return res.status(500).send('Error generating custom layout preview');
+  }
+}
+
+/* --------------------------------------------------------------------------
+   2) PDF
+   GET /cards/:deckId/pdfLayout2?size=3x5&orientation=portrait&design=design1
+   -------------------------------------------------------------------------- */
+export async function generatePDFHandler(req, res) {
+  try {
+    const { deckId } = req.params;
+    const {
+      size = '3x5',
+      orientation = 'portrait',
+      design = 'design1',
+      cardIndex: cardIndexParam,
+    } = req.query;
+
+    // 1) Deck name
+    const deck = await prisma.deck.findUnique({
+      where: { id: deckId },
+      select: { name: true },
+    });
+    const deckName = deck ? deck.name : 'Untitled Deck';
+
+    // 2) Cards
+    let cards = await cardService.findCardsByDeckId(deckId);
+
+    // If single cardIndex is requested
+    if (cardIndexParam !== undefined) {
+      const idx = parseInt(cardIndexParam, 10);
+      cards = cards[idx] ? [cards[idx]] : [];
+    }
+
+    // 3) Paths
+    const __dirname = path.dirname(fileURLToPath(import.meta.url));
+    const { layoutFile, cardFolder, cardFile, designFolder } = buildTemplatePaths(
+      size,
+      orientation,
+      design
+    );
+    const layoutPath = path.join(__dirname, '..', 'templates', 'layouts', layoutFile);
+
+    // 4) highlight.js setup
+    const { themeCSS, highlightCode } = getHighlightSetup();
+
+    // 5) EJS data
+    const ejsData = {
+      deckName,
+      cards,
+      orientation,
+      size,
+      design,
+      themeCSS,
+      highlightCode,
+      cardFolder,
+      cardFile,
+      designFolder,
     };
 
-    // 5) Generate PDF
-    const pdfBuffer = await generatePDF(templatePath, ejsData, {
+    // 6) Generate PDF
+    const pdfBuffer = await generatePDF(layoutPath, ejsData, {
       pdfOptions: {
         format: 'Letter',
         printBackground: true,
+        margin: { top: '0in', right: '0in', bottom: '0in', left: '0in' },
       },
       launchOptions: { headless: true },
     });
 
-    // 6) Send PDF
+    // 7) Return PDF
+    const outputFilename = `flashcards-${size}-${orientation}-${design}.pdf`;
     res.writeHead(200, {
       'Content-Type': 'application/pdf',
-      'Content-Disposition': 'attachment; filename="flashcards.pdf"',
+      'Content-Disposition': `attachment; filename="${outputFilename}"`,
       'Content-Length': pdfBuffer.length,
     });
     return res.end(pdfBuffer);
 
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: 'Error generating PDF', error });
-  }
-}
-
-/**
- * GET /cards/:deckId/preview?layout=layout1&style=design1
- */
-export async function previewFlashcardsHTMLHandler(req, res) {
-  try {
-    const { deckId } = req.params;
-    const layoutName = req.query.layout || 'layout1';
-    const styleName = req.query.style || 'design1';
-
-    const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    const templatePath = path.join(
-      __dirname,
-      '..',
-      'templates',
-      'layouts',
-      `${layoutName}.ejs`
-    );
-
-    // 1) Fetch the deck to get deckName
-    const deck = await prisma.deck.findUnique({
-      where: { id: deckId },
-      select: { name: true },
+    console.error('[generatePDFHandler] Error:', error);
+    return res.status(500).json({
+      message: 'Error generating custom layout PDF',
+      error,
     });
-    const deckName = deck ? deck.name : 'No deck name found';
-
-    // 2) Fetch real card data
-    const cards = await cardService.findCardsByDeckId(deckId);
-
-    // 3) highlight.js setup
-    const { themeCSS, highlightCode } = getHighlightSetup();
-
-    // 4) Render EJS to HTML
-    const htmlString = await ejs.renderFile(templatePath, {
-      style: styleName,
-      cards,
-      themeCSS,
-      highlightCode,
-      deckName, // Pass deck name here
-    });
-
-    res.setHeader('Content-Type', 'text/html');
-    return res.send(htmlString);
-
-  } catch (error) {
-    console.error(error);
-    return res.status(500).send('Error generating preview');
-  }
-}
-
-/**
- * GET /cards/:deckId/testPdf?layout=layout1&style=design1
- * Modified to only take the first 8 cards for a test print.
- */
-export async function generateFlashcardsTestPDFHandler(req, res) {
-  try {
-    const { deckId } = req.params;
-    const layoutName = req.query.layout || 'layout1';
-    const styleName = req.query.style || 'design1';
-
-    const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    const templatePath = path.join(
-      __dirname,
-      '..',
-      'templates',
-      'layouts',
-      `${layoutName}.ejs`
-    );
-
-    // 1) Fetch deck name
-    const deck = await prisma.deck.findUnique({
-      where: { id: deckId },
-      select: { name: true },
-    });
-    const deckName = deck ? deck.name : 'No deck name found';
-
-    // 2) Fetch real card data, but limit to 8 for testing
-    let cards = await cardService.findCardsByDeckId(deckId);
-    cards = cards.slice(0, 8);
-
-    // 3) highlight.js setup
-    const { themeCSS, highlightCode } = getHighlightSetup();
-
-    // 4) Prepare data for EJS
-    const ejsData = {
-      style: styleName,
-      cards,
-      themeCSS,
-      highlightCode,
-      deckName,
-    };
-
-    // 5) Generate PDF
-    const pdfBuffer = await generatePDF(templatePath, ejsData, {
-      pdfOptions: {
-        format: 'Letter',
-        printBackground: true,
-      },
-      launchOptions: { headless: true },
-    });
-
-    // 6) Return test.pdf
-    res.writeHead(200, {
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': 'attachment; filename="test.pdf"',
-      'Content-Length': pdfBuffer.length,
-    });
-    return res.end(pdfBuffer);
-
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: 'Error generating test PDF', error });
-  }
-}
-
-/**
- * GET /cards/:deckId/testPreview?layout=layout1&style=design1
- * Modified to only preview the first 8 cards for a test.
- */
-export async function previewFlashcardsTestHTMLHandler(req, res) {
-  try {
-    const { deckId } = req.params;
-    const layoutName = req.query.layout || 'layout1';
-    const styleName = req.query.style || 'design1';
-
-    const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    const templatePath = path.join(
-      __dirname,
-      '..',
-      'templates',
-      'layouts',
-      `${layoutName}.ejs`
-    );
-
-    // 1) Fetch deck name
-    const deck = await prisma.deck.findUnique({
-      where: { id: deckId },
-      select: { name: true },
-    });
-    const deckName = deck ? deck.name : 'No deck name found';
-
-    // 2) Fetch real card data, but only first 8
-    let cards = await cardService.findCardsByDeckId(deckId);
-    cards = cards.slice(0, 8);
-
-    // 3) highlight.js setup
-    const { themeCSS, highlightCode } = getHighlightSetup();
-
-    // 4) Render EJS for test preview
-    const htmlString = await ejs.renderFile(templatePath, {
-      style: styleName,
-      cards,
-      themeCSS,
-      highlightCode,
-      deckName,
-    });
-
-    res.setHeader('Content-Type', 'text/html');
-    return res.send(htmlString);
-
-  } catch (error) {
-    console.error(error);
-    return res.status(500).send('Error generating test preview');
   }
 }
