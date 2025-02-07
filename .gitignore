@@ -6,3 +6,7 @@ prisma/migrations/
 
 # Ignore environment variables file
 .env
+
+# working on new templates
+
+templatesInProgress/
