@@ -1,0 +1,157 @@
+<!-- src/features/flashCards/newtemp/designs/landscape/design8/front.ejs -->
+<style>
+    /*
+      Botanical Flourish:
+        - pastel green background
+        - subtle leaf motif (pure CSS shapes or pseudo-elements)
+        - elegant script heading
+    */
+  
+    .botanical-front {
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      position: relative;
+      padding: 5%;
+      background-color: #eaf4ec; /* pale pastel green */
+      font-family: "Didot", "Georgia", serif;
+      color: #2f4f4f; /* dark slate for text */
+  
+      /* Light border with a delicate dashed style */
+      border: 2px dashed #7c9f94;
+      border-radius: 6px;
+  
+      /* Use flex to stack top-row (QR + question) and bottom info */
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+  
+    /*
+      Leaf flourish in bottom-right (front) using inline SVG
+    */
+    .botanical-front::after {
+      content: "";
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      background: url("data:image/svg+xml,%3Csvg width='50' height='50' viewBox='0 0 24 24' fill='%237c9f94' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M16.88 3.549C19.78 6.459 21.203 10.5 20.148 14.15c-1.064 3.791-4.162 6.375-8.611 6.375-4.156 0-6.256-2.967-6.589-3.441l2.074-1.54c0.004 0.005 1.573 2.126 4.515 2.126 3.004 0 5.061-1.68 5.795-4.267 0.78-2.776-0.307-5.957-2.328-7.979l1.875-1.875h0.002z'/%3E%3C/svg%3E")
+                  no-repeat center / contain;
+      opacity: 0.6;
+      bottom: 0;
+      right: 0;
+      /* keep it behind the content in z-order */
+      z-index: 1;
+    }
+  
+    /* Top row with QR on the left and question on the right */
+    .top-row {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: flex-start;
+      position: relative;
+      z-index: 2;
+    }
+  
+    .botanical-qr {
+      width: 35%;
+      aspect-ratio: 1 / 1;
+      border: 1px dotted #7c9f94;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-sizing: border-box;
+      font-size: 0.8em;
+      color: #7c9f94;
+      margin: 0; /* remove vertical margin from vertical design */
+    }
+    .botanical-qr img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+  
+    .botanical-question {
+      width: 60%;
+      text-align: right;
+      font-size: 1.4em;
+      margin: 0; /* remove extra margin so it aligns with QR code */
+      margin-top: 1em; /* slight offset from top edge */
+      font-family: "Allura", "Brush Script MT", cursive; /* script heading */
+      color: #2f4f4f;
+    }
+  
+    /*
+      Bottom info area:
+      - If authorName is null: center deckName
+      - If authorName exists: deckName left, authorName right
+    */
+    .botanical-bottom {
+      display: flex;
+      align-items: center;
+      font-size: 0.85em; /* slightly smaller font size */
+      padding: 0 1em; /* spacing inside the card sides */
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      position: relative;
+      z-index: 2;
+    }
+    .botanical-bottom.center-only {
+      justify-content: center;
+    }
+    .botanical-bottom.with-author {
+      justify-content: space-between;
+    }
+  
+    .botanical-topic {
+      text-align: left;
+      font-style: italic;
+      color: #3f5f5f;
+      max-width: 45%;
+    }
+    .botanical-author {
+      text-align: right;
+      font-style: italic;
+      color: #3f5f5f;
+      max-width: 45%;
+    }
+  
+    @media print {
+      .botanical-front {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+  
+  <!-- FRONT SIDE -->
+  <div class="botanical-front">
+    <!-- Top row: QR (left) and Question (right) -->
+    <div class="top-row">
+      <div class="botanical-qr">
+        <% if (card && card.qrCodeUrl) { %>
+          <img src="<%= card.qrCodeUrl %>" alt="QR Code" />
+        <% } else { %>
+          No QR Code
+        <% } %>
+      </div>
+  
+      <h2 class="botanical-question">
+        <%= (card && card.question) ? card.question : 'No question provided' %>
+      </h2>
+    </div>
+  
+    <!-- Bottom Info: deck (left), author (right if present) -->
+    <div 
+      class="botanical-bottom
+      <%= (card && card.authorName) ? 'with-author' : 'center-only' %>"
+    >
+      <span class="botanical-topic"><%= deckName %></span>
+      <% if (card && card.authorName) { %>
+        <span class="botanical-author"><%= card.authorName %></span>
+      <% } %>
+    </div>
+  </div>
+  
