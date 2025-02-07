@@ -30,14 +30,11 @@ import {
   generateMissingQRCodesHandler,
 } from '../controllers/cardController.js';
 
-
-// PDF preview & generation
+// Import new pdf controller (renamed from pdfController2.js to pdfController.js)
 import {
-   generateFlashcardsPDFHandler,
-   previewFlashcardsHTMLHandler,
-   generateFlashcardsTestPDFHandler,
-  previewFlashcardsTestHTMLHandler,
- } from '../controllers/pdfController.js';
+  previewLayoutHandler,
+  generatePDFHandler,
+} from '../controllers/pdfController.js';
 
 const router = Router();
 
@@ -50,29 +47,29 @@ router.post('/', createCardHandler);    // POST /cards
 /* ===========================================================================
    2) CARD QUERIES
    ========================================================================== */
-router.get('/topic/:topicId', getCardsByTopicHandler);                    
-router.get('/topic/:topicId/descendants', getAllDescendantCardsHandler);  
-router.get('/deck/:deckId', getCardsByDeckIdHandler);                     
-router.get('/document/:documentId', getCardsByDocumentIdHandler);         
+router.get('/topic/:topicId', getCardsByTopicHandler);
+router.get('/topic/:topicId/descendants', getAllDescendantCardsHandler);
+router.get('/deck/:deckId', getCardsByDeckIdHandler);
+router.get('/document/:documentId', getCardsByDocumentIdHandler);
 
 /* ===========================================================================
    5) QR CODE (specific card param)
    ========================================================================== */
-router.get('/:cardId/qrCode', getCardQRCodeHandler);                       // GET /cards/:cardId/qrCode
+router.get('/:cardId/qrCode', getCardQRCodeHandler);
 
 /* ===========================================================================
    3) EXPLANATION & BLOCK OPERATIONS
    ========================================================================== */
-router.post('/:cardId/explanation', upsertCardExplanationHandler);         
-router.delete('/:cardId/explanation', removeCardExplanationHandler);       
+router.post('/:cardId/explanation', upsertCardExplanationHandler);
+router.delete('/:cardId/explanation', removeCardExplanationHandler);
 router.post('/:cardId/explanation/block', addCardExplanationBlockHandler);
 
 /* ===========================================================================
    1b) BASIC CARD CRUD (by ID)
    ========================================================================== */
-router.get('/:cardId', getCardByIdHandler);        
-router.put('/:cardId', updateCardHandler);         
-router.delete('/:cardId', deleteCardHandler);      
+router.get('/:cardId', getCardByIdHandler);
+router.put('/:cardId', updateCardHandler);
+router.delete('/:cardId', deleteCardHandler);
 
 /* ===========================================================================
    5b) QR CODE (missing)
@@ -88,15 +85,9 @@ router.post('/docAll', docAllCardsHandler);
 router.post('/masterGenerate', masterGenerateHandler);
 
 /* ===========================================================================
-   6) PDF GENERATION (by deckId)
+   8) CUSTOM LAYOUT ROUTES (from the new pdfController.js)
    ========================================================================== */
-// e.g. GET /cards/DECK123/pdf?layout=layout1&style=design1
-router.get('/:deckId/pdf', generateFlashcardsPDFHandler);
-
-// e.g. GET /cards/DECK123/preview?layout=layout1&style=design1
-router.get('/:deckId/preview', previewFlashcardsHTMLHandler);
-
-router.get('/:deckId/testPdf', generateFlashcardsTestPDFHandler);
-router.get('/:deckId/testPreview', previewFlashcardsTestHTMLHandler);
+router.get('/:deckId/previewLayout2', previewLayoutHandler);
+router.get('/:deckId/pdfLayout2', generatePDFHandler);
 
 export default router;
