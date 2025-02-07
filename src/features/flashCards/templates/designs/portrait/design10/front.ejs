@@ -1,0 +1,156 @@
+<!-- src/features/flashCards/newtemp/designs/vertical/design10/front.ejs -->
+<style>
+    /*
+      Baroque Kaleidoscope (front side):
+        - ornate, swirling backgrounds 
+        - lavish color transitions
+        - baroque-inspired corners & fleur-de-lis ornaments
+        - large, extravagant text
+    */
+  
+    .extreme10-front {
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      padding: 5%;
+      position: relative;
+      /* multi-layer swirling background in kaleidoscopic colors */
+      background:
+        radial-gradient(circle at 30% 30%, rgba(237,32,118,0.5), transparent 70%),
+        radial-gradient(circle at 70% 70%, rgba(45,122,237,0.5), transparent 70%),
+        linear-gradient(45deg, #ff007e, #00f6ff, #faff00, #ff00c8);
+      background-size: cover;
+      background-blend-mode: multiply;
+  
+      font-family: "Copperplate Gothic Bold", "Times New Roman", serif;
+      color: #fff;
+      text-shadow: 2px 2px 3px #000;
+      border: 6px double #000;
+      border-radius: 15px;
+      /* Ornate box-shadow */
+      box-shadow: 0 0 20px rgba(0,0,0,0.8), 0 0 10px #fff inset;
+    }
+  
+    /* Ornate corner decor: fleur-de-lis in corners using pseudo-elements (front side) */
+    .extreme10-front::before,
+    .extreme10-front::after {
+      content: "";
+      position: absolute;
+      width: 50px; 
+      height: 50px;
+      background: url("data:image/svg+xml,%3Csvg fill='%23fff' width='50' height='50' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 0c-1.657 0-3 1.343-3 3 0 1.281.885 2.363 2.084 2.77.026.103.05.207.07.316.09.473.146.94.146 1.398 0 .244-.01.486-.03.727-.314 3.647-3.416 5.332-3.416 7.969 0 1.656.942 3.09 2.295 3.868-.162.659-.416 1.536-.923 2.159-.641.787-1.417.793-1.775.795-.613.003-1.36.006-2.225.006v2c.865 0 1.612.003 2.225.006.978.004 1.885-.37 2.578-1.243.619-.76.902-1.702 1.115-2.545.197.009.394.015.59.015.196 0 .392-.006.59-.015.213.843.496 1.785 1.115 2.545.693.873 1.6 1.247 2.578 1.243.613-.003 1.36-.006 2.225-.006v-2c-.865 0-1.612-.003-2.225-.006-.358-.002-1.134-.009-1.775-.795-.507-.623-.761-1.501-.923-2.159 1.353-.778 2.295-2.212 2.295-3.868 0-2.637-3.102-4.321-3.416-7.969-.02-.241-.03-.483-.03-.727 0-.458.056-.925.146-1.398.02-.109.044-.213.07-.316 1.199-.407 2.084-1.489 2.084-2.77 0-1.657-1.343-3-3-3z'/%3E%3C/svg%3E") center/contain no-repeat;
+      opacity: 0.8;
+    }
+    /* position corners: top-left, top-right (for the front) */
+    .extreme10-front::before {
+      top: 0; left: 0;
+      transform: rotate(0deg);
+    }
+    .extreme10-front::after {
+      top: 0; right: 0;
+      transform: rotate(90deg);
+    }
+  
+    /* QR Code */
+    .extreme10-qr {
+      width: 25%;
+      aspect-ratio: 1 / 1;
+      margin: 0 auto 5%;
+      border: 3px solid #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-sizing: border-box;
+      font-size: 1em;
+      color: #fff;
+      background: rgba(0,0,0,0.3);
+      text-shadow: 1px 1px 2px #000;
+    }
+    .extreme10-qr img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+  
+    .extreme10-question {
+      text-align: center;
+      font-size: 1.8em;
+      margin-top: 5%;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #fff;
+      text-shadow: 3px 3px 4px #000;
+    }
+  
+    /*
+      Bottom Info area:
+      - If authorName is null: center deckName
+      - If authorName exists: deckName left, authorName right
+    */
+    .extreme10-bottom {
+      position: absolute;
+      left: 0; 
+      right: 0; 
+      bottom: 5%;
+      display: flex;
+      align-items: center;
+      font-size: 1.1em;
+      font-weight: bold;
+      padding: 0 1em;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+    .extreme10-bottom.center-only {
+      justify-content: center;
+    }
+    .extreme10-bottom.with-author {
+      justify-content: space-between;
+    }
+  
+    .extreme10-topic,
+    .extreme10-author {
+      max-width: 45%;
+      text-shadow: 2px 2px 3px #000;
+    }
+  
+    @media print {
+      .extreme10-front {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+  
+  <!-- FRONT SIDE -->
+  <div class="extreme10-front">
+  
+    <!-- QR Code -->
+    <div class="extreme10-qr">
+      <% if (card && card.qrCodeUrl) { %>
+        <img src="<%= card.qrCodeUrl %>" alt="QR Code" />
+      <% } else { %>
+        No QR Code
+      <% } %>
+    </div>
+  
+    <!-- QUESTION -->
+    <h2 class="extreme10-question">
+      <%= (card && card.question) ? card.question : 'No question provided' %>
+    </h2>
+  
+    <!-- Bottom Info: deck/author conditional display -->
+    <div
+      class="extreme10-bottom
+      <%= (card && card.authorName) ? 'with-author' : 'center-only' %>"
+    >
+      <% if (card && card.authorName) { %>
+        <span class="extreme10-topic"><%= deckName %></span>
+        <span class="extreme10-author"><%= card.authorName %></span>
+      <% } else { %>
+        <span class="extreme10-topic"><%= deckName %></span>
+      <% } %>
+    </div>
+  
+  </div>
+  
