@@ -1,0 +1,111 @@
+<!-- src/features/flashCards/newtemp/designs/vertical/design2/front.ejs -->
+<style>
+    /* Minimalist design: mostly white, subtle accents, clean typography */
+    .card-front {
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      padding: 5%;
+      position: relative;
+      background-color: #ffffff;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      color: #333;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+  
+    .qr-code-area {
+      width: 30%;
+      aspect-ratio: 1 / 1;
+      margin: 0 auto 5%;
+      border: 1px dashed #999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-sizing: border-box;
+      color: #999;
+      font-size: 0.8em;
+    }
+    .qr-code-area img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+  
+    .card-question {
+      text-align: center;
+      font-size: 1.1em;
+      font-weight: 600;
+      margin-top: 8%;
+    }
+  
+    .bottom-info {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 5%;
+      display: flex;
+      align-items: center;
+      font-size: 0.9em;
+      color: #666;
+      padding: 0 1em; /* space from the sides of the card */
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+    .bottom-info.center-only {
+      justify-content: center;
+    }
+    .bottom-info.with-author {
+      justify-content: space-between;
+    }
+  
+    .deck-name {
+      text-align: center;
+      max-width: 45%;
+    }
+    .author-name {
+      text-align: center;
+      max-width: 45%;
+    }
+  
+    @media print {
+      .card-front {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+  
+  <!-- FRONT SIDE -->
+  <div class="card-front">
+    <!-- QR Code -->
+    <div class="qr-code-area">
+      <% if (card && card.qrCodeUrl) { %>
+        <img src="<%= card.qrCodeUrl %>" alt="QR Code" />
+      <% } else { %>
+        No QR Code
+      <% } %>
+    </div>
+  
+    <!-- Question -->
+    <h2 class="card-question">
+      <%= (card && card.question) ? card.question : 'No question provided' %>
+    </h2>
+  
+    <!-- Bottom Info: deck/author conditional display -->
+    <div
+      class="bottom-info 
+      <%= (card && card.authorName) ? 'with-author' : 'center-only' %>"
+    >
+      <% if (card && card.authorName) { %>
+        <!-- Author exists: show both deckName (left) and authorName (right) -->
+        <span class="deck-name"><%= deckName %></span>
+        <span class="author-name"><%= card.authorName %></span>
+      <% } else { %>
+        <!-- Author is null: center only the deckName -->
+        <span class="deck-name"><%= deckName %></span>
+      <% } %>
+    </div>
+  </div>
+  
