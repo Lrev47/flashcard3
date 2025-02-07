@@ -1,0 +1,140 @@
+<!-- src/features/flashCards/newtemp/designs/vertical/design7/front.ejs -->
+<style>
+    /* 
+      Art Deco-style design:
+        - deep navy background
+        - geometric gold lines / frames
+        - refined type
+    */
+  
+    .artdeco-front {
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      padding: 5%;
+      background-color: #0b1e33; /* deep navy */
+      font-family: "Cormorant Garamond", Georgia, serif;
+      color: #ffd700; /* gold text */
+  
+      /* Distinctive double-border frame in gold, with a geometric corner effect */
+      border: 4px double #ffd700;
+      border-radius: 0; /* angular corners for an Art Deco feel */
+      position: relative;
+    }
+  
+    /* A decorative top bar with angled corners, done via pseudo-element */
+    .artdeco-front::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 10px;
+      background: repeating-linear-gradient(
+        45deg,
+        #ffd700,
+        #ffd700 5px,
+        #0b1e33 5px,
+        #0b1e33 10px
+      );
+    }
+  
+    /* QR code area */
+    .artdeco-qr {
+      width: 30%;
+      aspect-ratio: 1 / 1;
+      margin: 0 auto 5%;
+      border: 1px dashed #ffd700;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-sizing: border-box;
+      font-size: 0.8em;
+    }
+    .artdeco-qr img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+  
+    .artdeco-question {
+      text-align: center;
+      font-size: 1.3em;
+      margin-top: 8%;
+      font-weight: 600;
+      text-transform: uppercase;
+      text-shadow: 0 0 4px rgba(255, 215, 0, 0.5);
+    }
+  
+    /*
+      Bottom Info area:
+      - If authorName is null: center deckName
+      - If authorName exists: deckName left, author right
+    */
+    .artdeco-bottom {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 5%;
+      display: flex;
+      align-items: center;
+      font-size: 0.9em;
+      font-style: italic;
+      padding: 0 1em; /* spacing inside the card sides */
+      /* Allow wrapping if text is long */
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+    .artdeco-bottom.center-only {
+      justify-content: center;
+    }
+    .artdeco-bottom.with-author {
+      justify-content: space-between;
+    }
+  
+    .artdeco-topic,
+    .artdeco-author {
+      max-width: 45%;
+    }
+  
+    /* Print adjustments for the front side */
+    @media print {
+      .artdeco-front {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+  
+  <!-- FRONT SIDE -->
+  <div class="artdeco-front">
+  
+    <!-- QR Code -->
+    <div class="artdeco-qr">
+      <% if (card && card.qrCodeUrl) { %>
+        <img src="<%= card.qrCodeUrl %>" alt="QR Code" />
+      <% } else { %>
+        No QR Code
+      <% } %>
+    </div>
+  
+    <!-- QUESTION -->
+    <h2 class="artdeco-question">
+      <%= card && card.question ? card.question : 'No question provided' %>
+    </h2>
+  
+    <!-- Bottom Info: deck/author conditional display -->
+    <div 
+      class="artdeco-bottom 
+      <%= (card && card.authorName) ? 'with-author' : 'center-only' %>"
+    >
+      <% if (card && card.authorName) { %>
+        <span class="artdeco-topic"><%= deckName %></span>
+        <span class="artdeco-author"><%= card.authorName %></span>
+      <% } else { %>
+        <span class="artdeco-topic"><%= deckName %></span>
+      <% } %>
+    </div>
+  </div>
+  
