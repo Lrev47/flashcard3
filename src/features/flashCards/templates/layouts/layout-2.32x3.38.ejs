@@ -1,0 +1,139 @@
+<!-- src/features/flashCards/templates/layouts/layout-2.32x3.38.ejs -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Flashcard PDF - Layout 2.32x3.38</title>
+
+  <!-- Portrait layout: 8.5" wide × 11" tall -->
+  <meta name="viewport" content="width=8.5in, height=11in, initial-scale=1.0" />
+
+  <!-- If you need highlight.js theme -->
+  <% if (typeof themeCSS === 'string') { %>
+    <style><%- themeCSS %></style>
+  <% } %>
+
+  <style>
+    /* Remove default margins and force a portrait 8.5" x 11" page */
+    @media print {
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 8.5in;
+        height: 11in;
+      }
+      .page {
+        page-break-after: always;
+      }
+    }
+
+    @page {
+      size: 8.5in 11in; /* Portrait: 8.5" wide, 11" tall */
+      margin: 0;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 8.5in;
+      height: 11in;
+      font-family: Arial, sans-serif;
+      box-sizing: border-box;
+    }
+
+    /* Each "page" is 8.5" x 11", with a thin border for visualization */
+    .page {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 8.5in;
+      height: 11in;
+      box-sizing: border-box;
+      border: 1px solid #000; /* Thin line around the page */
+    }
+
+    /*
+      .cards-grid is rotated 90deg to match your existing style.
+      3 columns x 2 rows => total 6 cards per chunk.
+      Each card: 2.32" wide x 3.38" tall.
+    */
+    .cards-grid {
+      rotate: 90deg;
+      display: grid;
+      grid-template-columns: repeat(3, 2.32in);
+      grid-template-rows: repeat(2, 3.38in);
+      gap: 0;
+      border: 1px dashed #000; /* optional dashed outline */
+      box-sizing: border-box;
+    }
+
+    /* Each card is 2.32" × 3.38" */
+    .card {
+      width: 2.32in;
+      height: 3.38in;
+      border: 1px dashed #ccc; /* optional border per card */
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <%
+    /*
+      We'll process cards in chunks of 6 (3 columns x 2 rows).
+      => row1 => chunk[0..2], row2 => chunk[3..5]
+      Then we create a FRONT page and a BACK page for each chunk.
+
+      For a vertical "top-to-bottom" flip, row2 should become the top row on back,
+      so we reorder: row2 + row1.
+    */
+    for (let i = 0; i < cards.length; i += 6) {
+      const chunk = cards.slice(i, i + 6);
+
+      let backPositions;
+      if (chunk.length === 6) {
+        const row1 = chunk.slice(0, 3);   // top row of front
+        const row2 = chunk.slice(3, 6);   // bottom row of front
+        // Flip: row2 => top, row1 => bottom
+        backPositions = row2.concat(row1);
+      } else {
+        // less than 6 => no special row flip
+        backPositions = chunk.slice();
+      }
+  %>
+
+  <!-- FRONT PAGE (up to 6 cards) -->
+  <div class="page">
+    <div class="cards-grid">
+      <% chunk.forEach((cardFront) => { %>
+        <div class="card">
+          <%- include('../' + designFolder + '/front.ejs', {
+            card: cardFront,
+            deckName,
+            highlightCode
+          }) %>
+        </div>
+      <% }); %>
+    </div>
+  </div>
+
+  <!-- BACK PAGE (same 6 cards), row2 now on top if chunk=6 -->
+  <div class="page">
+    <div class="cards-grid">
+      <% backPositions.forEach((cardBack) => { %>
+        <div class="card">
+          <%- include('../' + designFolder + '/back.ejs', {
+            card: cardBack,
+            deckName,
+            highlightCode
+          }) %>
+        </div>
+      <% }); %>
+    </div>
+  </div>
+
+  <%
+    } // end for loop
+  %>
+</body>
+</html>
