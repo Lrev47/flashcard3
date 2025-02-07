@@ -1,0 +1,129 @@
+<!-- src/features/flashCards/newtemp/designs/landscape/design3/front.ejs -->
+<style>
+    /* Bold & Vibrant design: strong background color, high-contrast text */
+    
+    .card-front {
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      padding: 5%;
+      position: relative;
+      font-family: "Impact", "Arial Black", sans-serif;
+      color: #fff; /* White text for contrast on bold backgrounds */
+      background-color: #006c6c; /* default background for front */
+      /* Extra thick border in a complementary color */
+      border: 4px solid #ffcc00;
+      border-radius: 8px;
+  
+      /* Use flex to arrange top (QR + question) and bottom info */
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+  
+    .top-row {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+  
+    .qr-code-area {
+      width: 35%;
+      aspect-ratio: 1 / 1;
+      /* Use a bright accent for the dashed border */
+      border: 2px dashed #ff0080;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-sizing: border-box;
+      font-size: 0.8em;
+      margin: 0;
+    }
+    .qr-code-area img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+  
+    .card-question {
+      /* Take remaining space on the top row */
+      width: 60%;
+      text-align: right;
+      font-size: 1.4em;
+      margin: 0; /* remove top margin for alignment with QR */
+      text-transform: uppercase;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+  
+    /*
+      Bottom Info area:
+      Deck name on left, author on right if author exists;
+      otherwise deck name is centered.
+    */
+    .bottom-info {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.9em; /* slightly smaller font */
+      font-weight: bold;
+      text-transform: uppercase;
+      /* Allow wrapping if text is long */
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      padding: 0 1em; /* left/right spacing inside the card */
+      margin-top: 1em;
+    }
+    /* When only deck name is present, center it */
+    .bottom-info.center-only {
+      justify-content: center;
+    }
+    .bottom-info.with-author {
+      justify-content: space-between;
+    }
+  
+    .deck-name,
+    .author-name {
+      max-width: 45%;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+  
+    @media print {
+      .card-front {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+  
+  <!-- FRONT SIDE -->
+  <div class="card-front">
+    <div class="top-row">
+      <!-- QR Code on the left -->
+      <div class="qr-code-area">
+        <% if (card && card.qrCodeUrl) { %>
+          <img src="<%= card.qrCodeUrl %>" alt="QR Code" />
+        <% } else { %>
+          No QR Code
+        <% } %>
+      </div>
+  
+      <!-- Question on the right -->
+      <h2 class="card-question">
+        <%= card && card.question ? card.question : 'No question provided' %>
+      </h2>
+    </div>
+  
+    <!-- Bottom Info: deck (left), author (right if exists) -->
+    <div
+      class="bottom-info 
+      <%= (card && card.authorName) ? 'with-author' : 'center-only' %>"
+    >
+      <span class="deck-name"><%= deckName %></span>
+      <% if (card && card.authorName) { %>
+        <span class="author-name"><%= card.authorName %></span>
+      <% } %>
+    </div>
+  </div>
+  
