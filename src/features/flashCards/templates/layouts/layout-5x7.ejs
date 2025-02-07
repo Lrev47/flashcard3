@@ -1,0 +1,164 @@
+<!-- /src/features/flashCards/templates/layouts/two5x7layout.ejs -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Flashcard PDF - Two 5x7 Cards per Letter Page</title>
+
+  <!-- 
+    We're setting an 11in×8.5in "landscape" page (Letter),
+    with 0.5in margins. 
+  -->
+  <meta name="viewport" content="width=8.5in, height=11in, initial-scale=1.0" />
+
+  <!-- If you have a highlight.js theme -->
+  <% if (typeof themeCSS === 'string') { %>
+    <style><%- themeCSS %></style>
+  <% } %>
+
+  <style>
+    /* ----------------------------------------------------------
+       PRINT & PAGE SIZING
+       ---------------------------------------------------------- */
+    @media print {
+      html, body {
+        margin: 0;
+        padding: 0;
+        /* The physical page is 11" wide, 8.5" tall (landscape) */
+        width: 8.5in;
+        height: 11in;
+      }
+      .page {
+        page-break-after: always;
+      }
+    }
+
+    @page {
+      /*
+        Landscape Letter, with 0.5" margins all around.
+        This leaves a 10" wide x 7.5" tall usable area.
+      */
+      size: 8.5in 11in;
+      margin: 0;
+    }
+
+    /* 
+      The <html> and <body> reflect the overall 11×8.5,
+      but effectively 0.5in margins around the content.
+    */
+    html, body {
+      width: 8.5in;
+      height: 11in;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    /* 
+      Each .page represents the "usable" region inside the margin. 
+      We'll center the two-card grid within it if desired.
+    */
+    .page {
+      /* 
+        After 0.5in margins, the usable area is 10"×7.5". 
+        We can just let this container fill 100%.
+      */
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+
+      /* Optional bounding box to visualize the entire page content area */
+      border: 1px solid #000;
+
+      /* Center the grid inside */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* 
+      We have 2 columns, each 5" wide,
+      and 1 row, each 7" tall.
+    */
+    .cards-grid {
+      rotate: 90deg;
+      display: grid;
+      grid-template-columns: repeat(2, 5in);
+      grid-template-rows: 7in;
+      gap: 0;
+
+      /* Optional dashed outline around the entire 2-card area */
+      border: 1px dashed #000;
+    }
+
+    /* Each card is 5" wide x 7" tall */
+    .card {
+      width: 5in;
+      height: 7in;
+      border: 1px dashed #ccc; /* optional border on each card */
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <%
+    /*
+      We'll chunk the cards in groups of 2, since each page 
+      shows 2 card fronts. The following page will show 
+      those 2 card backs in reversed order.
+    */
+    for (let i = 0; i < cards.length; i += 2) {
+      // Grab up to 2 cards for the front
+      const chunk = cards.slice(i, i + 2);
+
+      // Reverse them for the back so top card prints at the "bottom"
+      // when flipping. This is the same logic as your original layout,
+      // but only for 2 cards per batch.
+      let backPositions;
+      if (chunk.length === 2) {
+        // 2 cards -> reverse order
+        backPositions = chunk.slice()
+      } else {
+        // If there's only 1 card left, no reversing needed
+        backPositions = chunk.slice();
+      }
+  %>
+
+  <!-- FRONT PAGE (up to 2 cards) -->
+  <div class="page">
+    <div class="cards-grid">
+      <% chunk.forEach((cardFront) => { %>
+        <div class="card">
+          <%- include('../' + designFolder + '/front.ejs', {
+            card: cardFront,
+            deckName,
+            highlightCode
+          }) %>
+        </div>
+      <% }); %>
+      <!-- If chunk.length < 2, there's an empty spot, but we won't fill it. -->
+    </div>
+  </div>
+
+  <!-- BACK PAGE (up to 2 cards) -->
+  <div class="page">
+    <div class="cards-grid">
+      <% backPositions.forEach((cardBack) => { %>
+        <div class="card">
+          <%- include('../' + designFolder + '/back.ejs', {
+            card: cardBack,
+            deckName,
+            highlightCode
+          }) %>
+        </div>
+      <% }); %>
+      <!-- Similarly, if there's only 1 card, the second cell remains empty. -->
+    </div>
+  </div>
+
+  <%
+    } // end for loop
+  %>
+</body>
+</html>
