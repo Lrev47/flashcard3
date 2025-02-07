@@ -1,0 +1,59 @@
+<!-- src/features/flashCards/newtemp/cards/vertical/businessCard.ejs -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>businessCard Vertical View</title>
+
+  <!-- If you need highlight.js theme -->
+  <% if (typeof themeCSS === 'string') { %>
+    <style><%- themeCSS %></style>
+  <% } %>
+
+  <style>
+    /* 
+      Demo container so you can see front/back side by side 
+      but oriented vertically (portrait).
+    */
+    .card1-vertical-container {
+      display: flex;
+      justify-content: space-around;
+      align-items: flex-start;
+      margin: 2rem auto;
+      width: 90%;
+    }
+
+    /* 
+      Card is 2.2in wide x 3.5in tall now, 
+      to achieve a vertical/portrait orientation.
+    */
+    .front-wrapper-vertical, .back-wrapper-vertical {
+      width: 2.2in;  
+      height: 3.5in;
+      margin: 0 1rem;
+      border: 1px solid #999;
+      overflow: hidden;
+      position: relative;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+  <div class="card1-vertical-container">
+    <div class="front-wrapper-vertical">
+      <%- include('./front.ejs', {
+        card,
+        deckName,
+        highlightCode
+      }) %>
+    </div>
+    <div class="back-wrapper-vertical">
+      <%- include('./back.ejs', {
+        card,
+        deckName,
+        highlightCode
+      }) %>
+    </div>
+  </div>
+</body>
+</html>
