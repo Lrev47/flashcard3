@@ -1,0 +1,331 @@
+<!-- src/features/flashCards/newtemp/designs/landscape/design9/back.ejs -->
+<style>
+    /*
+      Fractal Neon Dream (back) - Landscape version:
+        - multiple layered neon gradients
+        - intense fractal patterns
+        - huge text shadows
+    */
+    .extreme9-back {
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      padding: 5%;
+      position: relative;
+  
+      /* We'll layer multiple backgrounds to simulate fractal chaos */
+      background:
+        radial-gradient(circle at 10% 20%, rgba(255,0,255,0.2), transparent 60%),
+        radial-gradient(circle at 80% 80%, rgba(0,255,255,0.2), transparent 60%),
+        linear-gradient(135deg, #ff00ff 0%, #00ffff 50%, #ffea00 100%);
+      font-family: "Impact", "Arial Black", sans-serif;
+      color: #0fff0f; /* bright lime text */
+      text-shadow:
+        1px 1px 2px #000,
+        0 0 5px #ff0,
+        0 0 10px #0f0;
+      border: 5px solid #ff0080;
+      clip-path: polygon(0 5%, 5% 0, 95% 0, 100% 5%, 100% 95%, 95% 100%, 5% 100%, 0 95%);
+  
+      /* The front uses background-blend-mode: screen; so let's vary it here */
+      background-blend-mode: overlay;
+  
+      /* Rotate 180deg for printing orientation (landscape) */
+      transform: rotate(180deg);
+      transform-origin: center center;
+      overflow: hidden;
+    }
+  
+    /* Dot border & fractal pattern overlay from pseudo-element */
+    .extreme9-back::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      border: 10px dotted #ff0080;
+      box-sizing: border-box;
+      background: repeating-conic-gradient(
+        from 45deg,
+        rgba(0,255,255,0.1) 0% 10%,
+        transparent 10% 20%
+      ) 50% / 10px 10px;
+      mix-blend-mode: hard-light;
+    }
+  
+    /* 
+      .extreme9-content: container for the answer and examples. 
+      We'll manually handle scaling (no scroll).
+    */
+    .extreme9-content {
+      font-size: 1.2em;
+      line-height: 1.3;
+      position: relative;
+      width: 100%;
+      max-height: 100%;
+      overflow: hidden;
+    }
+  
+    /*
+      For the landscape layout:
+        - If example is present, display side by side
+          (answer left, example right)
+        - If no example, center the answer alone
+    */
+    .horizontal-layout {
+      display: flex;
+      justify-content: space-evenly;
+      align-items: flex-start;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+    }
+    .answer-area,
+    .example-area {
+      width: 45%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .centered-answer {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+    }
+  
+    /*
+      For scaling the main answer text:
+      .answer-scale-wrapper -> .answer-scale-inner
+    */
+    .answer-scale-wrapper {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      position: relative;
+    }
+    .answer-scale-inner {
+      display: inline-block;
+      transform-origin: top center;
+    }
+  
+    /* Main answer styling */
+    .extreme9-answer {
+      margin-top: 5%;
+      text-align: center;
+      font-size: 1.6em;
+      font-weight: 900;
+      text-transform: uppercase;
+      text-shadow:
+        2px 2px 2px #000,
+        0 0 5px #ff0,
+        0 0 10px #0ff,
+        0 0 15px #f0f;
+    }
+  
+    /* Example area styling */
+    .extreme9-example {
+      text-align: center;
+      margin-top: 4%;
+      font-size: 1em;
+      color: #ffffff;
+      text-shadow:
+        0 0 2px #f0f,
+        0 0 4px #0ff;
+      font-style: italic;
+  
+      /* Center code snippets or images */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+  
+    /* Ensure code wraps lines properly */
+    pre.hljs,
+    code.hljs {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+  
+    /*
+      For scaling code snippets/diagrams:
+      .code-scale-wrapper -> .code-scale-inner
+    */
+    .code-scale-wrapper {
+      position: relative;
+      width: 100%;
+      margin-top: 1em;
+  
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+    .code-scale-inner {
+      display: inline-block;
+      transform-origin: top left;
+    }
+  
+    @media print {
+      .extreme9-back {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+  
+  <!-- BACK SIDE (Landscape Layout for Design9) -->
+  <div class="extreme9-back">
+    <div class="extreme9-content">
+  
+      <!-- Server-side logic to determine whether to show an example -->
+      <%
+        const hasCard = !!card;
+        const atype = hasCard ? card.answerType : null;
+        const examplesData = hasCard ? card.examples : null;
+        const answerText = (card && card.answer) ? card.answer : 'No answer provided';
+  
+        let shouldShowExample = false;
+        if (hasCard && examplesData) {
+          if (
+            atype === 'CODE_SNIPPET' ||
+            atype === 'FLOWCHART' ||
+            atype === 'DIAGRAM'
+          ) {
+            shouldShowExample = true;
+          } else if (atype === undefined || atype === null) {
+            // Possibly user has a "regular" example text?
+            shouldShowExample = true;
+          }
+        }
+      %>
+  
+      <!-- If there's an example, place answer left & example right. Otherwise, center answer. -->
+      <% if (hasCard && atype !== 'NONE' && shouldShowExample) { %>
+        <div class="horizontal-layout">
+          <!-- ANSWER (Left) -->
+          <div class="answer-area">
+            <div class="answer-scale-wrapper">
+              <div class="answer-scale-inner">
+                <h3 class="extreme9-answer"><%= answerText %></h3>
+              </div>
+            </div>
+          </div>
+  
+          <!-- EXAMPLE (Right) -->
+          <div class="example-area">
+            <div class="extreme9-example">
+              <% 
+                // Use highlightCode if available
+                const renderHighlighted = (rawCode) => {
+                  if (typeof highlightCode === 'function') {
+                    return highlightCode(rawCode);
+                  }
+                  return rawCode; // fallback
+                };
+  
+                if (atype === 'CODE_SNIPPET') {
+              %>
+                <% if (Array.isArray(examplesData)) {
+                    examplesData.forEach(ex => {
+                      const codeContent = ex && ex.code ? ex.code : '';
+                      const snippetHtml = renderHighlighted(codeContent);
+                %>
+                  <div class="code-scale-wrapper">
+                    <div class="code-scale-inner">
+                      <pre class="hljs"><code class="hljs"><%- snippetHtml %></code></pre>
+                    </div>
+                  </div>
+                <%   });
+                  } else {
+                    const codeContent = (examplesData && examplesData.code)
+                      ? examplesData.code
+                      : '';
+                    const snippetHtml = renderHighlighted(codeContent);
+                %>
+                  <div class="code-scale-wrapper">
+                    <div class="code-scale-inner">
+                      <pre class="hljs"><code class="hljs"><%- snippetHtml %></code></pre>
+                    </div>
+                  </div>
+                <% } %>
+  
+              <% } else if (atype === 'FLOWCHART' || atype === 'DIAGRAM') { %>
+                <% if (typeof examplesData === 'string') { %>
+                  <img src="<%= examplesData %>" alt="Flowchart/Diagram" style="max-width:100%;" />
+                <% } else { %>
+                  No valid image URL
+                <% } %>
+  
+              <% } else { %>
+                <!-- Default or "regular" example text -->
+                <% if (Array.isArray(examplesData)) { %>
+                  <%= examplesData.join(', ') %>
+                <% } else { %>
+                  <%= examplesData %>
+                <% } %>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      <% } else { %>
+        <!-- No example, so center the answer alone. -->
+        <div class="centered-answer">
+          <div class="answer-scale-wrapper">
+            <div class="answer-scale-inner">
+              <h3 class="extreme9-answer"><%= answerText %></h3>
+            </div>
+          </div>
+        </div>
+      <% } %>
+  
+    </div><!-- END .extreme9-content -->
+  
+    <!-- SCALE-DOWN SCRIPT -->
+    <script>
+      (function() {
+        /*
+          We scale down both:
+           1) The answer text area (.answer-scale-wrapper)
+           2) Code snippet/diagram areas (.code-scale-wrapper)
+          if content is bigger than the container.
+        */
+        const scaleWrappers = document.querySelectorAll(
+          '.answer-scale-wrapper, .code-scale-wrapper'
+        );
+  
+        scaleWrappers.forEach(wrapper => {
+          const inner = wrapper.querySelector(
+            '.answer-scale-inner, .code-scale-inner'
+          );
+          if (!inner) return;
+  
+          // Reset transforms
+          inner.style.transform = '';
+  
+          // Measure container vs. content
+          const wrapRect  = wrapper.getBoundingClientRect();
+          const innerRect = inner.getBoundingClientRect();
+  
+          // e.g., a 10px bottom margin to avoid clipping
+          const BOTTOM_MARGIN = 10;
+          let usableHeight = wrapRect.height - BOTTOM_MARGIN;
+          if (usableHeight < 0) usableHeight = 0;
+  
+          let scaleW = wrapRect.width  / innerRect.width;
+          let scaleH = usableHeight    / innerRect.height;
+          let scale  = Math.min(scaleW, scaleH);
+  
+          // Only shrink if content is bigger
+          if (scale < 1) {
+            // Optionally enforce a minimum scale
+            scale = Math.max(scale, 0.75);
+            inner.style.transform = 'scale(' + scale + ')';
+          }
+        });
+      })();
+    </script>
+  </div>
+  
