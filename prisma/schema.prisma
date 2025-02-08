@@ -287,6 +287,7 @@ model BlogComment {
 
 // --------------- Resume Models ---------------
 
+// --------------- Resume Models ---------------
 model Resume {
   id     String @id @default(uuid())
   userId String
@@ -307,6 +308,15 @@ model Resume {
   projects        Project[]
   skillGroups     SkillGroup[]
   tailoredResumes TailoredResume[]
+
+  // ------------------------
+  // NEW OPTIONAL RELATIONSHIPS
+  // ------------------------
+  achievements         Achievement[]
+  certifications       Certification[]
+  languages            Language[]
+  volunteerExperiences VolunteerExperience[]
+  references           Reference[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -366,6 +376,86 @@ model SkillGroup {
 
   name   String
   skills String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// -------------------------------------------------------
+// NEW MODELS (OPTIONAL) FOR MORE FLEXIBILITY
+// -------------------------------------------------------
+
+// 1. Achievements / Awards
+model Achievement {
+  id       String @id @default(uuid())
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id])
+
+  title        String // e.g. "Employee of the Month"
+  bulletPoints String[] // e.g. highlights of the achievement
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 2. Certifications
+model Certification {
+  id       String @id @default(uuid())
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id])
+
+  name          String // e.g. "AWS Certified Solutions Architect"
+  issuingBody   String? // e.g. "Amazon Web Services"
+  issueDate     DateTime?
+  expiryDate    DateTime?
+  credentialId  String? // e.g. credential ID if applicable
+  credentialUrl String? // e.g. link to verify certificate
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 3. Language Proficiency
+model Language {
+  id       String @id @default(uuid())
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id])
+
+  name        String // e.g. "English"
+  proficiency String? // e.g. "Native", "Fluent", "Intermediate"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 4. Volunteer Experience
+model VolunteerExperience {
+  id       String @id @default(uuid())
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id])
+
+  organizationName String
+  roleTitle        String?
+  location         String?
+  startDate        DateTime?
+  endDate          DateTime?
+
+  bulletPoints String[] // e.g. main responsibilities or accomplishments
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 5. References
+model Reference {
+  id       String @id @default(uuid())
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id])
+
+  name     String // reference's name
+  phone    String?
+  email    String?
+  relation String? // e.g. "Former Manager"
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
