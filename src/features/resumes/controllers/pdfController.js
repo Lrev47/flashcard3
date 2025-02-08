@@ -1,79 +1,72 @@
 // src/features/resumes/controllers/pdfController.js
 
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
+import ejs from 'ejs';
+
 import { generatePDF } from '../services/pdfGenerator.js';
 import resumeService from '../services/resumeService.js';
-import tailoredResumeService from '../../tailoredResumes/services/tailoredResumeService.js';
-import ejs from 'ejs';
+import tailoredResumeService from '../services/tailoredResumeService.js';
 
 // For __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
- * Utility to pick the correct EJS template path based on templateName.
- * Adjust the filenames/folder structure as needed.
+ * Dynamically determine the EJS template path based on templateName.
+ * If the file doesn't exist, fallback to "template1.ejs".
  */
-function getTemplatePath(templateName) {
-  // For example: "template1" -> /path/to/template1.ejs
-  // Ensure your template files actually match these names.
+function getTemplatePath(templateName = 'template1') {
   const templatesDir = path.join(__dirname, '../templates');
-  switch (templateName) {
-    case 'template1':
-      return path.join(templatesDir, 'template1.ejs');
-    case 'template2':
-      return path.join(templatesDir, 'template2.ejs');
-    case 'template3':
-      return path.join(templatesDir, 'template3.ejs');
-    default:
-      // If you want a default, or handle an error if templateName is invalid
-      return path.join(templatesDir, 'template1.ejs');
+  let candidatePath = path.join(templatesDir, `${templateName}.ejs`);
+  
+  // Check if the template file exists; if not, fallback to template1
+  if (!fs.existsSync(candidatePath)) {
+    console.warn(
+      `Template "${templateName}.ejs" not found. Falling back to "template1.ejs".`
+    );
+    candidatePath = path.join(templatesDir, 'template1.ejs');
   }
+  
+  return candidatePath;
 }
 
 /**
- * Fetches data from either the Resume or TailoredResume service
- * based on the type ("resume" or "tailored") and recordId.
+ * ================================
+ *   BASE RESUME FUNCTIONS
+ * ================================
  */
-async function fetchResumeData(type, recordId) {
-  if (type === 'tailored') {
-    return tailoredResumeService.getTailoredResumeById(recordId);
-  } else {
-    // Default to regular resume
-    return resumeService.getResumeById(recordId);
-  }
-}
 
 /**
- * PREVIEW: Renders the chosen EJS template as HTML for a quick preview.
- * 
+ * 1) PREVIEW BASE RESUME: 
+ * Fetch the Resume (and its relations) and render a chosen EJS template into HTML.
+ *
  * Expects:
- * - req.query.type         -> "resume" or "tailored" (defaults to "resume")
- * - req.query.templateName -> "template1", "template2", or "template3" 
- * - req.query.recordId     -> The ID of the Resume or TailoredResume
+ * - req.query.recordId: the ID of the Resume
+ * - req.query.templateName: name of the EJS file (without ".ejs"), e.g. "template1"
  */
-export async function previewTemplate(req, res) {
+export async function previewBaseResume(req, res) {
   try {
-    const { type = 'resume', templateName = 'template1', recordId } = req.query;
+    const { recordId, templateName = 'template1' } = req.query;
 
     if (!recordId) {
       return res.status(400).json({ error: 'Missing recordId parameter' });
     }
 
-    // 1) Fetch the data from DB
-    const resumeData = await fetchResumeData(type, recordId);
+    // Fetch the base resume data
+    const resumeData = await resumeService.getResumeById(recordId);
     if (!resumeData) {
-      return res.status(404).json({ error: `No ${type} resume found with ID: ${recordId}` });
+      return res.status(404).json({ error: `No resume found with ID: ${recordId}` });
     }
 
-    // 2) Determine which EJS file to use
+    // Determine which EJS file to use
     const templatePath = getTemplatePath(templateName);
 
-    // 3) Render EJS into an HTML string
+    // Render EJS into an HTML string
     const htmlContent = await ejs.renderFile(templatePath, { resumeData });
 
-    // 4) Send the rendered HTML as the response (Preview)
+    // Send the rendered HTML as the response (Preview in browser)
     return res.status(200).send(htmlContent);
   } catch (error) {
     return res.status(500).json({ error: error.message });
@@ -81,48 +74,138 @@ export async function previewTemplate(req, res) {
 }
 
 /**
- * DOWNLOAD: Generates a PDF from the chosen EJS template.
- * 
+ * 2) GENERATE BASE RESUME PDF:
+ * Fetch the Resume data, then generate a PDF from the chosen EJS template.
+ *
  * Expects:
- * - req.query.type         -> "resume" or "tailored" (defaults to "resume")
- * - req.query.templateName -> "template1", "template2", or "template3"
- * - req.query.recordId     -> The ID of the Resume or TailoredResume
+ * - req.query.recordId: the ID of the Resume
+ * - req.query.templateName: name of the EJS file (without ".ejs")
  */
-export async function generateResumePDF(req, res) {
+export async function generateBaseResumePDF(req, res) {
   try {
-    const { type = 'resume', templateName = 'template1', recordId } = req.query;
+    const { recordId, templateName = 'template1' } = req.query;
 
     if (!recordId) {
       return res.status(400).json({ error: 'Missing recordId parameter' });
     }
 
-    // 1) Fetch the data from DB
-    const resumeData = await fetchResumeData(type, recordId);
+    // Fetch the base resume data
+    const resumeData = await resumeService.getResumeById(recordId);
     if (!resumeData) {
-      return res.status(404).json({ error: `No ${type} resume found with ID: ${recordId}` });
+      return res.status(404).json({ error: `No resume found with ID: ${recordId}` });
     }
 
-    // 2) Determine which EJS file to use
+    // Determine which EJS file to use
     const templatePath = getTemplatePath(templateName);
 
-    // 3) Generate PDF using pdfGenerator
-    //    We pass { resumeData } as the data object for the EJS file
-    const pdfBuffer = await generatePDF(templatePath, { resumeData }, {
-      // Optional puppeteerOptions
-      launchOptions: {
-        // e.g. executablePath: '/usr/bin/chromium-browser',
-      },
-      pdfOptions: {
-        format: 'Letter',
-        printBackground: true,
-        // margin: { top: '1in', bottom: '1in' },
-      },
-    });
+    // Generate PDF using pdfGenerator
+    const pdfBuffer = await generatePDF(
+      templatePath,
+      { resumeData },
+      {
+        launchOptions: {
+          // e.g. executablePath: '/usr/bin/chromium-browser',
+        },
+        pdfOptions: {
+          format: 'Letter',
+          printBackground: true,
+        },
+      }
+    );
 
-    // 4) Respond with the PDF (inline or attachment)
-    // Setting as an attachment download with a filename:
+    // Respond with the PDF (as attachment)
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${type}-resume.pdf"`);
+    res.setHeader('Content-Disposition', 'attachment; filename="base-resume.pdf"');
+    return res.send(pdfBuffer);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+}
+
+/**
+ * ================================
+ *   TAILORED RESUME FUNCTIONS
+ * ================================
+ */
+
+/**
+ * 3) PREVIEW TAILORED RESUME:
+ * Fetch the TailoredResume (and its relations) and render a chosen EJS template into HTML.
+ *
+ * Expects:
+ * - req.query.recordId: the ID of the TailoredResume
+ * - req.query.templateName: name of the EJS file (without ".ejs")
+ */
+export async function previewTailoredResume(req, res) {
+  try {
+    const { recordId, templateName = 'template1' } = req.query;
+
+    if (!recordId) {
+      return res.status(400).json({ error: 'Missing recordId parameter' });
+    }
+
+    // Fetch the tailored resume data
+    const tailoredData = await tailoredResumeService.getTailoredResumeById(recordId);
+    if (!tailoredData) {
+      return res.status(404).json({ error: `No tailored resume found with ID: ${recordId}` });
+    }
+
+    // Determine which EJS file to use
+    const templatePath = getTemplatePath(templateName);
+
+    // Render EJS into an HTML string
+    const htmlContent = await ejs.renderFile(templatePath, { resumeData: tailoredData });
+
+    // Send the rendered HTML as the response (Preview in browser)
+    return res.status(200).send(htmlContent);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+}
+
+/**
+ * 4) GENERATE TAILORED RESUME PDF:
+ * Fetch the TailoredResume data, then generate a PDF from the chosen EJS template.
+ *
+ * Expects:
+ * - req.query.recordId: the ID of the TailoredResume
+ * - req.query.templateName: name of the EJS file (without ".ejs")
+ */
+export async function generateTailoredResumePDF(req, res) {
+  try {
+    const { recordId, templateName = 'template1' } = req.query;
+
+    if (!recordId) {
+      return res.status(400).json({ error: 'Missing recordId parameter' });
+    }
+
+    // Fetch the tailored resume data
+    const tailoredData = await tailoredResumeService.getTailoredResumeById(recordId);
+    if (!tailoredData) {
+      return res.status(404).json({ error: `No tailored resume found with ID: ${recordId}` });
+    }
+
+    // Determine which EJS file to use
+    const templatePath = getTemplatePath(templateName);
+
+    // Generate PDF using pdfGenerator
+    const pdfBuffer = await generatePDF(
+      templatePath,
+      { resumeData: tailoredData },
+      {
+        launchOptions: {
+          // e.g. executablePath: '/usr/bin/chromium-browser',
+        },
+        pdfOptions: {
+          format: 'Letter',
+          printBackground: true,
+        },
+      }
+    );
+
+    // Respond with the PDF (as attachment)
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename="tailored-resume.pdf"');
     return res.send(pdfBuffer);
   } catch (error) {
     return res.status(500).json({ error: error.message });

@@ -2,8 +2,16 @@
 
 import express from 'express';
 import resumeController from '../controllers/resumeController.js';
-import jobPostingController from '../../jobPostings/controllers/jobPostingController.js';
-import tailoredResumeController from '../../tailoredResumes/controllers/tailoredResumeController.js';
+import jobPostingController from '../controllers/jobPostingController.js';
+import tailoredResumeController from '../controllers/tailoredResumeController.js';
+
+// Import the PDF controller functions
+import {
+  previewBaseResume,
+  generateBaseResumePDF,
+  previewTailoredResume,
+  generateTailoredResumePDF,
+} from '../controllers/pdfController.js';
 
 const router = express.Router();
 
@@ -78,5 +86,15 @@ router.get(
   '/tailored-resumes/user/:userId/job-postings/:jobPostingId',
   tailoredResumeController.getTailoredResumesByUserIdAndJobPostingId
 );
+
+/* ----------------- PDF Controller Routes ----------------- */
+
+// Base resume PDF routes
+router.get('/resumes/preview-pdf', previewBaseResume);
+router.get('/resumes/generate-pdf', generateBaseResumePDF);
+
+// Tailored resume PDF routes
+router.get('/tailored-resumes/preview-pdf', previewTailoredResume);
+router.get('/tailored-resumes/generate-pdf', generateTailoredResumePDF);
 
 export default router;

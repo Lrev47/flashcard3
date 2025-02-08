@@ -1,3 +1,4 @@
+// resumeController.js
 import resumeService from '../services/resumeService.js';
 
 /**
@@ -6,7 +7,12 @@ import resumeService from '../services/resumeService.js';
  */
 async function createResume(req, res) {
   try {
-    const data = req.body;
+    // If the user is logged in (req.user is defined), use their ID; otherwise use a test ID
+    const userId = req.user ? req.user.id : 'test-user-id';
+
+    // Merge the determined userId into the request body
+    const data = { ...req.body, userId };
+
     const newResume = await resumeService.createResume(data);
     return res.status(201).json(newResume);
   } catch (error) {
@@ -80,7 +86,12 @@ async function updateResume(req, res) {
       return res.status(400).json({ error: 'Missing resumeId parameter' });
     }
 
-    const data = req.body;
+    // If the user is logged in, use their ID; otherwise use a test ID
+    const userId = req.user ? req.user.id : 'test-user-id';
+
+    // Merge the determined userId into the request body
+    const data = { ...req.body, userId };
+
     const updatedResume = await resumeService.updateResume(resumeId, data);
     return res.status(200).json(updatedResume);
   } catch (error) {

@@ -9,9 +9,17 @@ const prisma = new PrismaClient();
  */
 async function createResume(data) {
   try {
+    // Fallback userId if none provided (must exist in your User table, or switch to connectOrCreate)
+    const userId = data.userId || 'test-user-id';
+
     const newResume = await prisma.resume.create({
       data: {
-        userId: data.userId,
+        // Instead of userId: data.userId, connect the existing user by ID
+        user: {
+          connect: {
+            id: userId,
+          },
+        },
         name: data.name,
         city: data.city,
         state: data.state,
@@ -160,10 +168,18 @@ async function getAllResumes() {
  */
 async function updateResume(resumeId, data) {
   try {
+    // Fallback userId if none provided
+    const userId = data.userId || 'test-user-id';
+
     const updatedResume = await prisma.resume.update({
       where: { id: resumeId },
       data: {
-        userId: data.userId,
+        // Replace userId with the user connection
+        user: {
+          connect: {
+            id: userId,
+          },
+        },
         name: data.name,
         city: data.city,
         state: data.state,
