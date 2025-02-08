@@ -1,5 +1,3 @@
-//prisma/schema.prisma
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -9,7 +7,6 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// --------------- Enums ---------------
 enum AnswerType {
   NONE
   CODE_SNIPPET
@@ -23,24 +20,18 @@ enum ExplanationBlockType {
   VIDEO
 }
 
-// --------------- Core Models ---------------
 model User {
   id       String  @id @default(uuid())
   email    String  @unique
   name     String?
   password String
 
-  // Resources owned by User
-  decks         Deck[]
-  studyGuides   StudyGuide[]
-  practiceTests PracticeTest[]
-  documents     Document[]
-
-  // Blog relationships
-  blogComments BlogComment[]
-  blogPosts    BlogPost[]
-
-  // Resume-related
+  decks           Deck[]
+  studyGuides     StudyGuide[]
+  practiceTests   PracticeTest[]
+  documents       Document[]
+  blogComments    BlogComment[]
+  blogPosts       BlogPost[]
   resumes         Resume[]
   jobPostings     JobPosting[]
   tailoredResumes TailoredResume[]
@@ -55,12 +46,11 @@ model Document {
   user     User    @relation(fields: [userId], references: [id])
   fileName String
   mimeType String?
-  fileData Bytes? // Or store an S3 link instead
+  fileData Bytes?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // If you want direct references from resources derived from this document:
   cards         Card[]
   studyGuides   StudyGuide[]
   practiceTests PracticeTest[]
@@ -72,12 +62,10 @@ model Topic {
   overview       String?
   cardsGenerated String?
 
-  // Self-relation for subtopics
   parentTopicId String?
   parentTopic   Topic?  @relation("TopicHierarchy", fields: [parentTopicId], references: [id])
   subTopics     Topic[] @relation("TopicHierarchy")
 
-  // Deck, Cards, StudyGuides, PracticeTests referencing this Topic
   deck          Deck[]         @relation("DeckTopic")
   cards         Card[]         @relation("TopicCards")
   studyGuides   StudyGuide[]   @relation("TopicStudyGuides")
@@ -87,7 +75,6 @@ model Topic {
   updatedAt DateTime @updatedAt
 }
 
-// --------------- Deck & Card ---------------
 model Deck {
   id       String  @id @default(uuid())
   name     String
@@ -110,19 +97,15 @@ model Card {
   qrCodeGenerated Boolean?
   qrCodeUrl       String?
 
-  // If topic-based
   topicId String?
   topic   Topic?  @relation("TopicCards", fields: [topicId], references: [id])
 
-  // If document-based
   documentId String?
   document   Document? @relation(fields: [documentId], references: [id])
 
-  // Basic answer data
   answer     String
   answerType AnswerType @default(NONE)
 
-  // Instead of a "detailedExplanation" string, we point to a separate model
   explanation DetailedExplanation?
 
   resources         Json?
@@ -134,18 +117,14 @@ model Card {
   updatedAt DateTime @updatedAt
 }
 
-// --------------- Explanation (for each Card) ---------------
 model DetailedExplanation {
   id String @id @default(uuid())
 
-  // 1-to-1 relation with Card
   cardId String @unique
   card   Card   @relation(fields: [cardId], references: [id])
 
-  // Optional title or summary
   title String?
 
-  // multiple blocks for structured text, images, or video links
   blocks ExplanationBlock[]
 
   createdAt DateTime @default(now())
@@ -159,16 +138,14 @@ model ExplanationBlock {
 
   blockType  ExplanationBlockType
   blockTitle String?
-  content    String? // For TEXT, this is text. For IMAGE/VIDEO, store the URL.
+  content    String?
 
-  // optional ordering if you want to specify the sequence
   order Int?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-// --------------- Study Guide & Sections ---------------
 model StudyGuide {
   id String @id @default(uuid())
 
@@ -182,9 +159,8 @@ model StudyGuide {
   documentId String?
   document   Document? @relation(fields: [documentId], references: [id])
 
-  title String // main title of the entire guide
+  title String
 
-  // Relationship to the sections for more structured content
   sections StudyGuideSection[]
 
   createdAt DateTime @default(now())
@@ -196,18 +172,16 @@ model StudyGuideSection {
   studyGuideId String
   studyGuide   StudyGuide @relation(fields: [studyGuideId], references: [id])
 
-  // Example fields: heading, body, images, references, etc.
   order     Int?
   heading   String?
-  body      String? // store markdown or plain text
-  imageUrls String[] // for multiple image links (Postgres text[] by default)
-  videoUrls String[] // for multiple video links (Postgres text[] by default)
+  body      String?
+  imageUrls String[]
+  videoUrls String[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-// --------------- Practice Test ---------------
 model PracticeTest {
   id String @id @default(uuid())
 
@@ -242,18 +216,16 @@ model PracticeTestQuestion {
   updatedAt DateTime @updatedAt
 }
 
-// --------------- Blog Post & Comments ---------------
 model BlogPost {
   id            String  @id @default(uuid())
   slug          String  @unique
   topLevelImage String?
-  header        String // main title
+  header        String
   tagline       String?
 
   authorId String
   author   User   @relation(fields: [authorId], references: [id])
 
-  // Up to three paragraphs, you can expand if you need more
   paragraph1Title String?
   paragraph1      String?
   paragraph2Title String?
@@ -285,9 +257,23 @@ model BlogComment {
   updatedAt DateTime @updatedAt
 }
 
-// --------------- Resume Models ---------------
+model JobPosting {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
-// --------------- Resume Models ---------------
+  initalListing String
+
+  companyName    String?
+  jobTitle       String?
+  jobDescription String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tailoredResumes TailoredResume[]
+}
+
 model Resume {
   id     String @id @default(uuid())
   userId String
@@ -303,15 +289,13 @@ model Resume {
   githubUrl   String?
   summary     String?
 
-  education       Education[]
-  experiences     Experience[]
-  projects        Project[]
-  skillGroups     SkillGroup[]
+  education   Education[]
+  experiences Experience[]
+  projects    Project[]
+  skillGroups SkillGroup[]
+
   tailoredResumes TailoredResume[]
 
-  // ------------------------
-  // NEW OPTIONAL RELATIONSHIPS
-  // ------------------------
   achievements         Achievement[]
   certifications       Certification[]
   languages            Language[]
@@ -381,54 +365,46 @@ model SkillGroup {
   updatedAt DateTime @updatedAt
 }
 
-// -------------------------------------------------------
-// NEW MODELS (OPTIONAL) FOR MORE FLEXIBILITY
-// -------------------------------------------------------
-
-// 1. Achievements / Awards
 model Achievement {
   id       String @id @default(uuid())
   resumeId String
   resume   Resume @relation(fields: [resumeId], references: [id])
 
-  title        String // e.g. "Employee of the Month"
-  bulletPoints String[] // e.g. highlights of the achievement
+  title        String
+  bulletPoints String[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-// 2. Certifications
 model Certification {
   id       String @id @default(uuid())
   resumeId String
   resume   Resume @relation(fields: [resumeId], references: [id])
 
-  name          String // e.g. "AWS Certified Solutions Architect"
-  issuingBody   String? // e.g. "Amazon Web Services"
+  name          String
+  issuingBody   String?
   issueDate     DateTime?
   expiryDate    DateTime?
-  credentialId  String? // e.g. credential ID if applicable
-  credentialUrl String? // e.g. link to verify certificate
+  credentialId  String?
+  credentialUrl String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-// 3. Language Proficiency
 model Language {
   id       String @id @default(uuid())
   resumeId String
   resume   Resume @relation(fields: [resumeId], references: [id])
 
-  name        String // e.g. "English"
-  proficiency String? // e.g. "Native", "Fluent", "Intermediate"
+  name        String
+  proficiency String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-// 4. Volunteer Experience
 model VolunteerExperience {
   id       String @id @default(uuid())
   resumeId String
@@ -440,44 +416,24 @@ model VolunteerExperience {
   startDate        DateTime?
   endDate          DateTime?
 
-  bulletPoints String[] // e.g. main responsibilities or accomplishments
+  bulletPoints String[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-// 5. References
 model Reference {
   id       String @id @default(uuid())
   resumeId String
   resume   Resume @relation(fields: [resumeId], references: [id])
 
-  name     String // reference's name
+  name     String
   phone    String?
   email    String?
-  relation String? // e.g. "Former Manager"
+  relation String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
-
-model JobPosting {
-  id     String @id @default(uuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-
-  // The raw or initial text the user pasted
-  initalListing String
-
-  companyName    String?
-  jobTitle       String?
-  jobDescription String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // If you want the reverse relation from JobPosting -> TailoredResume
-  tailoredResumes TailoredResume[]
 }
 
 model TailoredResume {
@@ -491,8 +447,157 @@ model TailoredResume {
   jobPostingId String
   jobPosting   JobPosting @relation(fields: [jobPostingId], references: [id])
 
-  // The final curated resume content as text or markdown, etc.
+  name        String?
+  city        String?
+  state       String?
+  zip         String?
+  phone       String?
+  email       String?
+  linkedinUrl String?
+  githubUrl   String?
+  summary     String?
+
+  tailoredEducation            TailoredEducation[]
+  tailoredExperiences          TailoredExperience[]
+  tailoredProjects             TailoredProject[]
+  tailoredSkillGroups          TailoredSkillGroup[]
+  tailoredAchievements         TailoredAchievement[]
+  tailoredCertifications       TailoredCertification[]
+  tailoredLanguages            TailoredLanguage[]
+  tailoredVolunteerExperiences TailoredVolunteerExperience[]
+  tailoredReferences           TailoredReference[]
+
   content String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TailoredEducation {
+  id               String         @id @default(uuid())
+  tailoredResumeId String
+  tailoredResume   TailoredResume @relation(fields: [tailoredResumeId], references: [id])
+
+  institution  String
+  degree       String?
+  fieldOfStudy String?
+  startDate    DateTime?
+  endDate      DateTime?
+
+  bulletPoints String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TailoredExperience {
+  id               String         @id @default(uuid())
+  tailoredResumeId String
+  tailoredResume   TailoredResume @relation(fields: [tailoredResumeId], references: [id])
+
+  roleTitle String
+  company   String
+  location  String?
+  startDate DateTime?
+  endDate   DateTime?
+
+  responsibilities String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TailoredProject {
+  id               String         @id @default(uuid())
+  tailoredResumeId String
+  tailoredResume   TailoredResume @relation(fields: [tailoredResumeId], references: [id])
+
+  title            String
+  technologiesUsed String[]
+  bulletPoints     String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TailoredSkillGroup {
+  id               String         @id @default(uuid())
+  tailoredResumeId String
+  tailoredResume   TailoredResume @relation(fields: [tailoredResumeId], references: [id])
+
+  name   String
+  skills String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TailoredAchievement {
+  id               String         @id @default(uuid())
+  tailoredResumeId String
+  tailoredResume   TailoredResume @relation(fields: [tailoredResumeId], references: [id])
+
+  title        String
+  bulletPoints String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TailoredCertification {
+  id               String         @id @default(uuid())
+  tailoredResumeId String
+  tailoredResume   TailoredResume @relation(fields: [tailoredResumeId], references: [id])
+
+  name          String
+  issuingBody   String?
+  issueDate     DateTime?
+  expiryDate    DateTime?
+  credentialId  String?
+  credentialUrl String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TailoredLanguage {
+  id               String         @id @default(uuid())
+  tailoredResumeId String
+  tailoredResume   TailoredResume @relation(fields: [tailoredResumeId], references: [id])
+
+  name        String
+  proficiency String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TailoredVolunteerExperience {
+  id               String         @id @default(uuid())
+  tailoredResumeId String
+  tailoredResume   TailoredResume @relation(fields: [tailoredResumeId], references: [id])
+
+  organizationName String
+  roleTitle        String?
+  location         String?
+  startDate        DateTime?
+  endDate          DateTime?
+
+  bulletPoints String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TailoredReference {
+  id               String         @id @default(uuid())
+  tailoredResumeId String
+  tailoredResume   TailoredResume @relation(fields: [tailoredResumeId], references: [id])
+
+  name     String
+  phone    String?
+  email    String?
+  relation String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
