@@ -1,3 +1,5 @@
+// src/features/resumes/services/resumeService.js
+
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -9,12 +11,20 @@ const prisma = new PrismaClient();
  */
 async function createResume(data) {
   try {
-    // Fallback userId if none provided (must exist in your User table, or switch to connectOrCreate)
+    // Fallback userId if none provided
     const userId = data.userId || 'test-user-id';
+
+    // 1. Make sure the user actually exists
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new Error(
+        `No user found with ID "${userId}". Please create the user first or pass a valid user ID.`
+      );
+    }
 
     const newResume = await prisma.resume.create({
       data: {
-        // Instead of userId: data.userId, connect the existing user by ID
+        // Connect to the existing user record
         user: {
           connect: {
             id: userId,
@@ -171,10 +181,17 @@ async function updateResume(resumeId, data) {
     // Fallback userId if none provided
     const userId = data.userId || 'test-user-id';
 
+    // 1. Make sure the user actually exists
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new Error(
+        `No user found with ID "${userId}". Please create the user first or pass a valid user ID.`
+      );
+    }
+
     const updatedResume = await prisma.resume.update({
       where: { id: resumeId },
       data: {
-        // Replace userId with the user connection
         user: {
           connect: {
             id: userId,

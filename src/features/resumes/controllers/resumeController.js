@@ -1,4 +1,4 @@
-// resumeController.js
+// src/features/resumes/controllers/resumeController.js
 import resumeService from '../services/resumeService.js';
 
 /**
@@ -7,8 +7,8 @@ import resumeService from '../services/resumeService.js';
  */
 async function createResume(req, res) {
   try {
-    // If the user is logged in (req.user is defined), use their ID; otherwise use a test ID
-    const userId = req.user ? req.user.id : 'test-user-id';
+    // If the user is logged in (req.user is defined), use req.user.userId; otherwise use a test ID
+    const userId = req.user && req.user.userId ? req.user.userId : 'test-user-id';
 
     // Merge the determined userId into the request body
     const data = { ...req.body, userId };
@@ -86,8 +86,8 @@ async function updateResume(req, res) {
       return res.status(400).json({ error: 'Missing resumeId parameter' });
     }
 
-    // If the user is logged in, use their ID; otherwise use a test ID
-    const userId = req.user ? req.user.id : 'test-user-id';
+    // If the user is logged in, use req.user.userId; otherwise use 'test-user-id'
+    const userId = req.user && req.user.userId ? req.user.userId : 'test-user-id';
 
     // Merge the determined userId into the request body
     const data = { ...req.body, userId };

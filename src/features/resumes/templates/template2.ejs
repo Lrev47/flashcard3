@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Resume - <%= resume.name %></title>
+  <style>
+    body {
+      margin: 2rem;
+      font-family: Arial, sans-serif;
+      line-height: 1.4;
+      color: #333;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    .contact-info {
+      margin-bottom: 1rem;
+      font-weight: bold;
+    }
+    .section-title {
+      background-color: #333;
+      color: #fff;
+      padding: 0.5rem;
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+      font-size: 1.2rem;
+      text-transform: uppercase;
+    }
+    .subsection-title {
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+      margin-top: 1rem;
+      font-size: 1.1rem;
+      text-decoration: underline;
+    }
+    ul {
+      margin-left: 2rem;
+      list-style: disc;
+    }
+    .job-title {
+      font-style: italic;
+      margin-bottom: 0.2rem;
+    }
+    .job-dates {
+      float: right;
+    }
+    .job-entry {
+      margin-bottom: 1.5rem;
+      clear: both;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER / CONTACT INFO -->
+  <header>
+    <h1 style="margin-bottom: 0.2rem;"><%= resume.name.toUpperCase() %></h1>
+    <div class="contact-info">
+      <%= resume.city %>, <%= resume.state %> <%= resume.zip %> | C: <%= resume.phone %> | 
+      <a href="mailto:<%= resume.email %>"><%= resume.email %></a>
+    </div>
+  </header>
+
+  <!-- SUMMARY -->
+  <p><%= resume.summary %></p>
+
+  <!-- AREAS OF EXPERTISE -->
+  <div class="section-title">Areas of Expertise</div>
+  <ul>
+    <% resume.skillGroups[0].skills.forEach(function(skill) { %>
+      <li><%= skill %></li>
+    <% }) %>
+  </ul>
+
+  <!-- EDUCATION & TRAINING -->
+  <div class="section-title">Education & Training</div>
+  <p>
+    <strong>
+      <%= resume.education[0].degree %> | <%= resume.education[0].institution %>
+    </strong>
+    <span style="float: right;">
+      Graduated 
+      <%= new Date(resume.education[0].endDate).toLocaleString('default', { month: 'long', year: 'numeric' }) %> 
+      | 3.8 GPA
+    </span>
+  </p>
+  <ul>
+    <% resume.education[0].bulletPoints.forEach(function(point) { %>
+      <li><%= point %></li>
+    <% }) %>
+  </ul>
+  <div style="clear: both;"></div>
+
+  <!-- MILITARY & PROFESSIONAL EXPERIENCE -->
+  <div class="section-title">Military & Professional Experience</div>
+
+  <!-- 1st Experience -->
+  <div class="job-entry">
+    <div>
+      <strong><%= resume.experiences[0].company.toUpperCase() %></strong>
+      <span class="job-dates">
+        <%= new Date(resume.experiences[0].startDate).getFullYear() %> – 
+        <%= new Date(resume.experiences[0].endDate).getFullYear() %>
+      </span>
+    </div>
+    <div class="job-title"><%= resume.experiences[0].roleTitle %></div>
+    <p>Responsible for managing and reviewing Usage Contracts.</p>
+    <p><strong>Job Tasks &amp; Responsibilities:</strong></p>
+    <ul>
+      <% resume.experiences[0].responsibilities.forEach(function(resp) { %>
+        <li><%= resp %></li>
+      <% }) %>
+    </ul>
+  </div>
+
+  <!-- 2nd Experience -->
+  <div class="job-entry">
+    <div>
+      <strong><%= resume.experiences[1].company.toUpperCase() %></strong>
+      <span class="job-dates">
+        <%= new Date(resume.experiences[1].startDate).getFullYear() %> – 
+        <%= new Date(resume.experiences[1].endDate).getFullYear() %>
+      </span>
+    </div>
+    <div class="job-title"><%= resume.experiences[1].roleTitle %></div>
+    <p>Responsible for drafting and reviewing Wind and Solar Easements.</p>
+    <p><strong>Job Tasks &amp; Responsibilities:</strong></p>
+    <ul>
+      <% resume.experiences[1].responsibilities.forEach(function(resp) { %>
+        <li><%= resp %></li>
+      <% }) %>
+    </ul>
+  </div>
+
+</body>
+</html>
